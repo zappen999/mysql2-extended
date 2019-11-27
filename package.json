@@ -1,0 +1,14 @@
+{
+  "name": "mysql2-extended",
+  "version": "0.1.0",
+  "description": "Thin convenience layer for mysql2 library.",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "npm test"
+  },
+  "author": "Johan Kanefur <johan@kanefur.se>",
+  "license": "GPL-3.0",
+  "devDependencies": {
+    "mysql2": "^1.7.0"
+  }
+}
