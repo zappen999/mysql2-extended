@@ -16,6 +16,9 @@ See `src/usage.js` for now.
 
 TBD
 
+## TODO
+- Implement tests where all cases in usage.js are validated.
+
 ## Future
 
 - Make the library work with more databases.

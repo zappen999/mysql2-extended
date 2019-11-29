@@ -1,49 +1,47 @@
-const MySQL2Extended = require('./index');
-const mysql2 = require('mysql2/promise');
+const MySQL2Extended = require('./index')
+const mysql2 = require('mysql2/promise')
 
 const pool = mysql2.createPool({
-	host: '127.0.0.1',
-	user: 'root',
-	password: 'password',
-	database: 'test',
-	waitForConnections: true,
-	connectionLimit: 10,
-	queueLimit: 10,
+  host: '127.0.0.1',
+  user: 'root',
+  password: 'password',
+  database: 'test',
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 10
 })
 
 const db = new MySQL2Extended(pool)
 
-async function test() {
-	// Fetch multiple rows
-	const users = await db.query('SELECT firstname FROM users LIMIT 2');
+async function test () {
+  // Fetch multiple rows
+  const users = await db.query('SELECT firstname FROM users LIMIT 2');
 
-	// Fetch one row
-	const [user] = await db.query('SELECT * FROM users LIMIT 1')
+  // Fetch one row
+  const [user] = await db.query('SELECT * FROM users LIMIT 1')
 
-	// Transaction (manual)
-	const con = await db.begin()
-	await con.query('select firstname from users limit 1')
-	await con.query('select firstname from users limit 2')
-	await con.commit()
-	// await con.insert('users', { firstname: 'Johan' })
-	// await con.insert('users', { firstname: 'Rickard' })
+  // Transaction (manual)
+  const con = await db.begin()
+  await con.query('select firstname from users limit 1')
+  await con.query('select firstname from users limit 2')
+  await con.commit()
+  // await con.insert('users', { firstname: 'Johan' })
+  // await con.insert('users', { firstname: 'Rickard' })
 
-	// Transaction (managed)
-	// await db.transaction(async con => {
-	// 	await con.query(`insert into users (firstname) values ('johan')`)
-	// 	await con.query('select * from users limit 1')
-	// })
+  // Transaction (managed)
+  // await db.transaction(async con => {
+  //   await con.query(`insert into users (firstname) values ('johan')`)
+  //   await con.query('select * from users limit 1')
+  // })
 
-	// Parameter binding
-	const [user2] = await db.query('select email from users where id = ?', [20322])
-	console.log(user2)
+  // Parameter binding
+  const [user2] = await db.query('select email from users where id = ?', [20322])
+  console.log(user2)
 
-
-	process.exit(0)
+  process.exit(0)
 }
 
 test().catch(err => console.log(err))
-
 
 // // Select using convenience function
 // const [user] = await db.select(['firstname', 'lastname'], 'users', { id: 5 })
@@ -63,7 +61,7 @@ test().catch(err => console.log(err))
 // 			['id', 'desc'],
 // 			['gender', 'asc']
 // 		]
-// 	}
+// }
 // )
 
 // // Parameter binding

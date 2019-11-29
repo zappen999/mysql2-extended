@@ -4,11 +4,14 @@
   "description": "Thin convenience layer for mysql2 library.",
   "main": "src/index.js",
   "scripts": {
-    "test": "npm test"
+    "test": "./node_modules/.bin/jest",
+    "test:watch": "./node_modules/.bin/jest --watchAll"
   },
   "author": "Johan Kanefur <johan@kanefur.se>",
   "license": "GPL-3.0",
   "devDependencies": {
-    "mysql2": "^1.7.0"
+    "jest": "^24.9.0",
+    "mysql2": "^1.7.0",
+    "standard": "^14.3.1"
   }
 }
