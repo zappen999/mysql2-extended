@@ -22,3 +22,4 @@ TBD
 ## Future
 
 - Make the library work with more databases.
+- Be able to generate SQL queries in specific formats/flavours.

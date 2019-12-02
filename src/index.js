@@ -20,23 +20,53 @@ class QueryInterfaceAbstract {
     return results
   }
 
-  // TODO: Construct SQL
+  // cols?, table, where = null, opts = {}
   async select (...args) {
-    const argOffset = Array.isArray(args[0]) ? 0 : 1
-    let attrs = args[argOffset + 0]
-    let table = args[argOffset + 1]
-    let where = args[argOffset + 2] || null
+    // If the first argument is an array (column selection), then offset the
+    // argument list by one.
+    const argOffset = Array.isArray(args[0]) ? 0 : -1
+    const cols = argOffset === 0 ? args[argOffset] : null
+    const table = args[argOffset + 1]
+    const where = args[argOffset + 2] || null
+    // TODO: Handle this according to usage.js
     const opts = args[argOffset + 3] || null
 
-    assert.ok(typeof table === 'string', 'Table must be')
+    // console.log({ argOffset, cols, table, where, opts })
+    assert.ok(typeof table === 'string', 'Table must be string')
 
-    if (Array.isArray(args[0])) {
-      attrs = args[0]
-      table = args[1]
-      where = args[1]
+    let sql = 'SELECT'
+    const values = []
+
+    // Apply column selection
+    if (cols) {
+      sql += ' ' + cols.map(c => '`' + c + '`').join(', ')
+    } else {
+      sql += ' *'
     }
 
-    attrs, table, where = null, opts = {}
+    sql += ' FROM `' + table + '`'
+
+    // TODO: Break this out to separate location since it will be used in
+    // updates etc too.
+    if (where) {
+      sql += ' WHERE ' + Object
+        .keys(where)
+        .map(k => {
+          values.push(where[k])
+          return '`' + k + '` = ?'
+        })
+        .join(' AND ')
+    }
+
+    const con = await this._getConnection()
+    const driverArgs = [sql]
+
+    // Parameter bindings
+    if (values.length) {
+      driverArgs.push(values)
+    }
+
+    return con.query(...driverArgs)
   }
 
   // TODO: Construct SQL
