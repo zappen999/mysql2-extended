@@ -116,5 +116,37 @@ describe('Querying', () => {
       expect(driverInstance.connections[0].logs[0][0]).toBe(expectedSQL)
       expect(driverInstance.connections[0].logs[0][1]).toEqual(expectedValues)
     })
+
+    test('Should select with ordering provided', async () => {
+      const { db, driverInstance } = createTestInstance()
+      const expectedSQL = 'SELECT * FROM `users` ORDER BY `a` DESC'
+      await db.select('users', null, { order: ['a', 'desc'] })
+      expect(driverInstance.connections[0].logs[0][0]).toBe(expectedSQL)
+    })
+
+    test('Should select with multiple orderings provided', async () => {
+      const { db, driverInstance } = createTestInstance()
+      const expectedSQL = 'SELECT * FROM `users` ORDER BY `a` DESC, `b` ASC'
+      await db.select('users', null, { order: [['a', 'desc'], ['b', 'asc']] })
+      expect(driverInstance.connections[0].logs[0][0]).toBe(expectedSQL)
+    })
+
+    test('Should select with limit', async () => {
+      const { db, driverInstance } = createTestInstance()
+      const expectedSQL = 'SELECT * FROM `users` LIMIT ?'
+      const expectedValues = [3]
+      await db.select('users', null, { limit: 3 })
+      expect(driverInstance.connections[0].logs[0][0]).toBe(expectedSQL)
+      expect(driverInstance.connections[0].logs[0][1]).toEqual(expectedValues)
+    })
+
+    test('Should select with limit and offset', async () => {
+      const { db, driverInstance } = createTestInstance()
+      const expectedSQL = 'SELECT * FROM `users` LIMIT ?, ?'
+      const expectedValues = [1, 3]
+      await db.select('users', null, { limit: 3, offset: 1 })
+      expect(driverInstance.connections[0].logs[0][0]).toBe(expectedSQL)
+      expect(driverInstance.connections[0].logs[0][1]).toEqual(expectedValues)
+    })
   })
 })

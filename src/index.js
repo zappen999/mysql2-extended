@@ -27,11 +27,11 @@ class QueryInterfaceAbstract {
     const argOffset = Array.isArray(args[0]) ? 0 : -1
     const cols = argOffset === 0 ? args[argOffset] : null
     const table = args[argOffset + 1]
-    const where = args[argOffset + 2] || null
+    const condObj = args[argOffset + 2] || null
     // TODO: Handle this according to usage.js
-    const opts = args[argOffset + 3] || null
+    const opts = args[argOffset + 3] || {}
 
-    // console.log({ argOffset, cols, table, where, opts })
+    // console.log({ argOffset, cols, table, condObj, opts })
     assert.ok(typeof table === 'string', 'Table must be string')
 
     let sql = 'SELECT'
@@ -46,16 +46,16 @@ class QueryInterfaceAbstract {
 
     sql += ' FROM `' + table + '`'
 
-    // TODO: Break this out to separate location since it will be used in
-    // updates etc too.
-    if (where) {
-      sql += ' WHERE ' + Object
-        .keys(where)
-        .map(k => {
-          values.push(where[k])
-          return '`' + k + '` = ?'
-        })
-        .join(' AND ')
+    if (condObj) {
+      sql += this._getWhereCondition(condObj, values)
+    }
+
+    if (opts.order) {
+      sql += this._applyOrder(opts.order)
+    }
+
+    if (opts.limit) {
+      sql += this._applyLimit(values, opts.limit, opts.offset)
     }
 
     const con = await this._getConnection()
@@ -67,6 +67,55 @@ class QueryInterfaceAbstract {
     }
 
     return con.query(...driverArgs)
+  }
+
+  /**
+   * Construct condition (WHERE clause) from condition object. Note that this
+   * will mutate the values array by adding bound parameters to it.
+   */
+  _getWhereCondition (condObj, values) {
+    return ' WHERE ' + Object
+      .keys(condObj)
+      .map(k => {
+        values.push(condObj[k])
+        return '`' + k + '` = ?'
+      })
+      .join(' AND ')
+  }
+
+  /**
+   * Applies order to select(?) query.
+   * TODO: Assertion on DESC/ASC?
+   */
+  _applyOrder (order) {
+    assert.ok(Array.isArray(order), 'opts.order must be an array')
+
+    // Wrap single order array to be able to handle it in the same way
+    const orderings = !Array.isArray(order[0])
+      ? [order]
+      : order
+
+    return ' ORDER BY ' + orderings
+      .map(o => '`' + o[0] + '` ' + o[1].toUpperCase())
+      .join(', ')
+  }
+
+  /**
+   * Constructs limit clause. Note that this will mutate the values array by
+   * adding the limit/offset values as bound parameter values.
+   */
+  _applyLimit (values, limit, offset = null) {
+    let sql = ''
+
+    if (offset) {
+      sql += ' LIMIT ?, ?'
+      values.push(offset, limit)
+    } else {
+      sql = ' LIMIT ?'
+      values.push(limit)
+    }
+
+    return sql
   }
 
   // TODO: Construct SQL
