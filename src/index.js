@@ -20,7 +20,10 @@ class QueryInterfaceAbstract {
     return results
   }
 
-  // cols?, table, where = null, opts = {}
+  /**
+   * Arguments: cols (optional), table, where = null, opts = {}
+   * TODO: See common operations that can be shared in select/update/delete.
+   */
   async select (...args) {
     // If the first argument is an array (column selection), then offset the
     // argument list by one.
