@@ -208,5 +208,13 @@ describe('Querying', () => {
       expect(driverInstance.connections[0].logs[0][0]).toBe(expectedSQL)
       expect(driverInstance.connections[0].logs[0][1]).toEqual(expectedValues)
     })
+
+    // TODO: See how mysql2 returns the affected row count
+    // test('Should return affected row count', async () => {
+    //   const { db, driverInstance } = createTestInstance()
+    //   const expectedSQL = 'DELETE FROM `users`'
+    //   const count = await db.delete('users')
+    //   expect(driverInstance.connections[0].logs[0][0]).toBe(expectedSQL)
+    // })
   })
 })
