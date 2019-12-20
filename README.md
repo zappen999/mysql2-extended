@@ -23,3 +23,6 @@ TBD
 
 - Make the library work with more databases.
 - Be able to generate SQL queries in specific formats/flavours.
+- Increase performance by not using map/filter/join.
+- Support for more complex condition objects.
+- Run tests with an actual database connection.
