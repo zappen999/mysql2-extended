@@ -1,8 +1,11 @@
 /* eslint-env jest */
 const MySQL2Extended = require('./index')
+const { QueryInterfaceAbstract } = require('./query-abstract')
+const { MySQL2Mock } = require('./mocks/mysql2')
 
 /**
- * Creates a testable instance of MySQL2Extended.
+ * Initializes a testable instance of MySQL2Extended by exposing mocked driver
+ * instance.
  */
 function createTestInstance () {
   const driverInstance = new MySQL2Mock()
@@ -11,35 +14,6 @@ function createTestInstance () {
   return {
     db: new MySQL2Extended(driverInstance),
     driverInstance
-  }
-}
-
-// TODO: BREAK MYSQL SPECIFIC STUFF OUT TO OTHER MODULE
-
-/**
- * Create mock instance of mysql2.
- */
-class MySQL2Mock {
-  constructor () {
-    // List of opened connections with this instance.
-    this.connections = []
-  }
-
-  async getConnection () {
-    const con = new MySQL2MockConnection()
-    this.connections.push(con)
-    return con
-  }
-}
-
-class MySQL2MockConnection {
-  constructor () {
-    this.logs = []
-  }
-
-  async query (...args) {
-    this.logs.push(args)
-    return Promise.resolve([])
   }
 }
 
@@ -216,5 +190,114 @@ describe('Querying', () => {
     //   const count = await db.delete('users')
     //   expect(driverInstance.connections[0].logs[0][0]).toBe(expectedSQL)
     // })
+  })
+
+  describe('Transaction', () => {
+    describe('Begin', () => {
+      it('Should return a query interface', async () => {
+        const { db } = createTestInstance()
+        const transaction = await db.begin()
+        expect(transaction instanceof QueryInterfaceAbstract).toEqual(true)
+      })
+
+      it('Should open a new connection and reuse it', async () => {
+        const { db, driverInstance } = createTestInstance()
+
+        const transaction = await db.begin()
+        await transaction.select('users')
+        await transaction.commit()
+
+        expect(driverInstance.connections.length).toBe(1)
+        const queries = driverInstance.connections[0].logs
+        expect(queries[0][0]).toEqual('BEGIN')
+        expect(queries[1][0]).toEqual('SELECT * FROM `users`')
+        expect(queries[2][0]).toEqual('COMMIT')
+      })
+    })
+
+    it('Should throw if committing twice', async () => {
+      expect.assertions(1)
+      const { db } = createTestInstance()
+
+      const transaction = await db.begin()
+      await transaction.commit() // first
+
+      try {
+        await transaction.commit() // second
+      } catch (err) {
+        expect(err).toEqual(
+          new Error('Cannot COMMIT transaction. Already got COMMIT')
+        )
+      }
+    })
+
+    it('Should throw if doing rollback twice', async () => {
+      expect.assertions(1)
+      const { db } = createTestInstance()
+
+      const transaction = await db.begin()
+      await transaction.rollback() // first
+
+      try {
+        await transaction.rollback() // second
+      } catch (err) {
+        expect(err).toEqual(
+          new Error('Cannot ROLLBACK transaction. Already got ROLLBACK')
+        )
+      }
+    })
+
+    it('Should throw if doing rollback after commit', async () => {
+      expect.assertions(1)
+      const { db } = createTestInstance()
+
+      const transaction = await db.begin()
+      await transaction.commit()
+
+      try {
+        await transaction.rollback()
+      } catch (err) {
+        expect(err).toEqual(
+          new Error('Cannot ROLLBACK transaction. Already got COMMIT')
+        )
+      }
+    })
+  })
+
+  describe('Managed transaction', () => {
+    it('Should rollback transaction if user callback throws', async () => {
+      expect.assertions(5)
+      const { db, driverInstance } = createTestInstance()
+
+      try {
+        await db.transaction(async transaction => {
+          await transaction.select('users')
+          throw new Error('Oopsy')
+        })
+      } catch (err) {
+        expect(err).toEqual(new Error('Oopsy'))
+      }
+
+      expect(driverInstance.connections.length).toBe(1)
+      const queries = driverInstance.connections[0].logs
+      expect(queries[0][0]).toEqual('BEGIN')
+      expect(queries[1][0]).toEqual('SELECT * FROM `users`')
+      expect(queries[2][0]).toEqual('ROLLBACK')
+    })
+
+    it('Should auto commit transaction', async () => {
+      expect.assertions(4)
+      const { db, driverInstance } = createTestInstance()
+
+      await db.transaction(async transaction => {
+        await transaction.select('users')
+      })
+
+      expect(driverInstance.connections.length).toBe(1)
+      const queries = driverInstance.connections[0].logs
+      expect(queries[0][0]).toEqual('BEGIN')
+      expect(queries[1][0]).toEqual('SELECT * FROM `users`')
+      expect(queries[2][0]).toEqual('COMMIT')
+    })
   })
 })
