@@ -63,9 +63,10 @@ describe('Querying', () => {
 
     test('Should select with conditions provided', async () => {
       const { db, driverInstance } = createTestInstance()
-      const expectedSQL = 'SELECT * FROM `users` WHERE `id` = ?'
-      const expectedValues = [3]
-      await db.select('users', { id: 3 })
+      const expectedSQL = 'SELECT * FROM `users` WHERE `id` = ? AND ' +
+        '`firstname` = ?'
+      const expectedValues = [3, 'Test']
+      await db.select('users', { id: 3, firstname: 'Test' })
       expect(driverInstance.connections[0].logs[0][0]).toBe(expectedSQL)
       expect(driverInstance.connections[0].logs[0][1]).toEqual(expectedValues)
     })
