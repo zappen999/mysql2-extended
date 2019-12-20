@@ -73,27 +73,6 @@ describe('Querying', () => {
   })
 
   describe('Select', () => {
-    // // Select using convenience function
-    // const [user] = await db.select(['firstname', 'lastname'], 'users', { id: 5 })
-
-    // // Select all columns using convenience function
-    // const users = await db.select('users', { id: 5 })
-
-    // // Select with condition, limit, offset and order
-    // const users = await db.select(
-    //   ['firstname'],
-    //   'users',
-    //   { id: 5 },
-    //   {
-    //     limit: 10,
-    //     offset: 3,
-    //     order: [
-    //       ['id', 'desc'],
-    //       ['gender', 'asc']
-    //     ]
-    // }
-    // )
-
     test('Should select all columns if none specified', async () => {
       const { db, driverInstance } = createTestInstance()
       const expectedSQL = 'SELECT * FROM `users`'
@@ -145,6 +124,87 @@ describe('Querying', () => {
       const expectedSQL = 'SELECT * FROM `users` LIMIT ?, ?'
       const expectedValues = [1, 3]
       await db.select('users', null, { limit: 3, offset: 1 })
+      expect(driverInstance.connections[0].logs[0][0]).toBe(expectedSQL)
+      expect(driverInstance.connections[0].logs[0][1]).toEqual(expectedValues)
+    })
+  })
+
+  describe('Insert', () => {
+    test('Should insert single row', async () => {
+      const { db, driverInstance } = createTestInstance()
+      const expectedSQL = 'INSERT INTO `users` (`firstname`, `lastname`) ' +
+        'VALUES (?, ?)'
+      const expectedValues = ['Test', 'Testsson']
+      await db.insert('users', { firstname: 'Test', lastname: 'Testsson' })
+      expect(driverInstance.connections[0].logs[0][0]).toBe(expectedSQL)
+      expect(driverInstance.connections[0].logs[0][1]).toEqual(expectedValues)
+    })
+
+    test('Should insert multiple rows', async () => {
+      const { db, driverInstance } = createTestInstance()
+      const expectedSQL = 'INSERT INTO `users` (`firstname`, `lastname`) ' +
+        'VALUES (?, ?), (?, ?)'
+      const expectedValues = ['Test', 'Testsson', 'Try', 'Trysson']
+      await db.insert('users', [
+        { firstname: 'Test', lastname: 'Testsson' },
+        { firstname: 'Try', lastname: 'Trysson' }
+      ])
+      expect(driverInstance.connections[0].logs[0][0]).toBe(expectedSQL)
+      expect(driverInstance.connections[0].logs[0][1]).toEqual(expectedValues)
+    })
+
+    test('Should throw error if no rows are provided', async () => {
+      const { db } = createTestInstance()
+      expect.assertions(1)
+
+      try {
+        await db.insert('users', [])
+      } catch (err) {
+        expect(
+          err.message.indexOf('There must be atleast one row to insert')
+        ).toBeGreaterThan(-1)
+      }
+    })
+  })
+
+  describe('Delete', () => {
+    test('Should delete with conditions provided', async () => {
+      const { db, driverInstance } = createTestInstance()
+      const expectedSQL = 'DELETE FROM `users` WHERE `id` = ?'
+      const expectedValues = [3]
+      await db.delete('users', { id: 3 })
+      expect(driverInstance.connections[0].logs[0][0]).toBe(expectedSQL)
+      expect(driverInstance.connections[0].logs[0][1]).toEqual(expectedValues)
+    })
+
+    test('Should delete with ordering provided', async () => {
+      const { db, driverInstance } = createTestInstance()
+      const expectedSQL = 'DELETE FROM `users` ORDER BY `a` DESC'
+      await db.delete('users', null, { order: ['a', 'desc'] })
+      expect(driverInstance.connections[0].logs[0][0]).toBe(expectedSQL)
+    })
+
+    test('Should delete with multiple orderings provided', async () => {
+      const { db, driverInstance } = createTestInstance()
+      const expectedSQL = 'DELETE FROM `users` ORDER BY `a` DESC, `b` ASC'
+      await db.delete('users', null, { order: [['a', 'desc'], ['b', 'asc']] })
+      expect(driverInstance.connections[0].logs[0][0]).toBe(expectedSQL)
+    })
+
+    test('Should delete with limit', async () => {
+      const { db, driverInstance } = createTestInstance()
+      const expectedSQL = 'DELETE FROM `users` LIMIT ?'
+      const expectedValues = [3]
+      await db.delete('users', null, { limit: 3 })
+      expect(driverInstance.connections[0].logs[0][0]).toBe(expectedSQL)
+      expect(driverInstance.connections[0].logs[0][1]).toEqual(expectedValues)
+    })
+
+    test('Should not respect limit with offset', async () => {
+      const { db, driverInstance } = createTestInstance()
+      const expectedSQL = 'DELETE FROM `users` LIMIT ?'
+      const expectedValues = [3]
+      await db.delete('users', null, { limit: 3, offset: 1 })
       expect(driverInstance.connections[0].logs[0][0]).toBe(expectedSQL)
       expect(driverInstance.connections[0].logs[0][1]).toEqual(expectedValues)
     })

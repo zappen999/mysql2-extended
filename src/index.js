@@ -34,7 +34,6 @@ class QueryInterfaceAbstract {
     // TODO: Handle this according to usage.js
     const opts = args[argOffset + 3] || {}
 
-    // console.log({ argOffset, cols, table, condObj, opts })
     assert.ok(typeof table === 'string', 'Table must be string')
 
     let sql = 'SELECT'
@@ -42,12 +41,12 @@ class QueryInterfaceAbstract {
 
     // Apply column selection
     if (cols) {
-      sql += ' ' + cols.map(c => '`' + c + '`').join(', ')
+      sql += ' ' + cols.map(c => this._strWrap(c, '`')).join(', ')
     } else {
       sql += ' *'
     }
 
-    sql += ' FROM `' + table + '`'
+    sql += ' FROM ' + this._strWrap(table, '`')
 
     if (condObj) {
       sql += this._getWhereCondition(condObj, values)
@@ -61,15 +60,7 @@ class QueryInterfaceAbstract {
       sql += this._applyLimit(values, opts.limit, opts.offset)
     }
 
-    const con = await this._getConnection()
-    const driverArgs = [sql]
-
-    // Parameter bindings
-    if (values.length) {
-      driverArgs.push(values)
-    }
-
-    return con.query(...driverArgs)
+    return this._execute(sql, values)
   }
 
   /**
@@ -99,7 +90,7 @@ class QueryInterfaceAbstract {
       : order
 
     return ' ORDER BY ' + orderings
-      .map(o => '`' + o[0] + '` ' + o[1].toUpperCase())
+      .map(o => this._strWrap(o[0], '`') + ' ' + o[1].toUpperCase())
       .join(', ')
   }
 
@@ -121,12 +112,84 @@ class QueryInterfaceAbstract {
     return sql
   }
 
-  // TODO: Construct SQL
+  /**
+   * Insert. Data can be either a single object, or an array of uniform objects.
+   */
   async insert (table, data) {
+    assert.ok(typeof table === 'string', 'Table must be string')
+
+    let sql = `INSERT INTO ${this._strWrap(table, '`')}`
+    const values = []
+
+    // Wrap single data object into array to be able to handle both bulk an
+    // normal insertions in the same way.
+    const rows = !Array.isArray(data)
+      ? [data]
+      : data
+    assert.ok(rows.length > 0, 'There must be atleast one row to insert.')
+
+    const firstRow = rows[0]
+    const firstRowKeys = Object.keys(firstRow)
+    const valuePlaceholder = '(' + firstRowKeys.map(_ => '?').join(', ') + ')'
+
+    // Append the columns that will be updated based on the first object.
+    sql += ' ('
+    sql += firstRowKeys
+      .map(k => this._strWrap(k, '`'))
+      .join(', ')
+    sql += ') VALUES '
+
+    sql += rows
+      .map(row => {
+        values.push(...Object.values(row))
+        return valuePlaceholder
+      })
+      .join(', ')
+
+    return this._execute(sql, values)
   }
 
-  // TODO: Construct SQL
-  async delete (table, where) {
+  /**
+   * Delete. Note that opts.offset will not be respected in the same way as
+   * insert, since MySQL does not support delete's with offset.
+   */
+  async delete (table, condObj = null, opts = {}) {
+    assert.ok(typeof table === 'string', 'Table must be string')
+
+    let sql = 'DELETE'
+    const values = []
+
+    sql += ' FROM ' + this._strWrap(table, '`')
+
+    if (condObj) {
+      sql += this._getWhereCondition(condObj, values)
+    }
+
+    if (opts.order) {
+      sql += this._applyOrder(opts.order)
+    }
+
+    if (opts.limit) {
+      sql += this._applyLimit(values, opts.limit)
+    }
+
+    return this._execute(sql, values)
+  }
+
+  _strWrap (str, char) {
+    return `${char}${str}${char}`
+  }
+
+  async _execute (sql, values = []) {
+    const con = await this._getConnection()
+    const driverArgs = [sql]
+
+    // Parameter bindings
+    if (values.length) {
+      driverArgs.push(values)
+    }
+
+    return con.query(...driverArgs)
   }
 }
 
