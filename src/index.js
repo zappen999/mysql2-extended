@@ -49,7 +49,7 @@ class QueryInterfaceAbstract {
     sql += ' FROM ' + this._strWrap(table, '`')
 
     if (condObj) {
-      sql += this._getWhereCondition(condObj, values)
+      sql += this._applyWhereCondition(condObj, values)
     }
 
     if (opts.order) {
@@ -67,7 +67,7 @@ class QueryInterfaceAbstract {
    * Construct condition (WHERE clause) from condition object. Note that this
    * will mutate the values array by adding bound parameters to it.
    */
-  _getWhereCondition (condObj, values) {
+  _applyWhereCondition (condObj, values) {
     return ' WHERE ' + Object
       .keys(condObj)
       .map(k => {
@@ -162,7 +162,7 @@ class QueryInterfaceAbstract {
     sql += ' FROM ' + this._strWrap(table, '`')
 
     if (condObj) {
-      sql += this._getWhereCondition(condObj, values)
+      sql += this._applyWhereCondition(condObj, values)
     }
 
     if (opts.order) {
