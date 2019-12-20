@@ -22,7 +22,6 @@ class QueryInterfaceAbstract {
 
   /**
    * Arguments: cols (optional), table, where = null, opts = {}
-   * TODO: See common operations that can be shared in select/update/delete.
    */
   async select (...args) {
     // If the first argument is an array (column selection), then offset the
@@ -61,55 +60,6 @@ class QueryInterfaceAbstract {
     }
 
     return this._execute(sql, values)
-  }
-
-  /**
-   * Construct condition (WHERE clause) from condition object. Note that this
-   * will mutate the values array by adding bound parameters to it.
-   */
-  _applyWhereCondition (condObj, values) {
-    return ' WHERE ' + Object
-      .keys(condObj)
-      .map(k => {
-        values.push(condObj[k])
-        return '`' + k + '` = ?'
-      })
-      .join(' AND ')
-  }
-
-  /**
-   * Applies order to select(?) query.
-   * TODO: Assertion on DESC/ASC?
-   */
-  _applyOrder (order) {
-    assert.ok(Array.isArray(order), 'opts.order must be an array')
-
-    // Wrap single order array to be able to handle it in the same way
-    const orderings = !Array.isArray(order[0])
-      ? [order]
-      : order
-
-    return ' ORDER BY ' + orderings
-      .map(o => this._strWrap(o[0], '`') + ' ' + o[1].toUpperCase())
-      .join(', ')
-  }
-
-  /**
-   * Constructs limit clause. Note that this will mutate the values array by
-   * adding the limit/offset values as bound parameter values.
-   */
-  _applyLimit (values, limit, offset = null) {
-    let sql = ''
-
-    if (offset) {
-      sql += ' LIMIT ?, ?'
-      values.push(offset, limit)
-    } else {
-      sql = ' LIMIT ?'
-      values.push(limit)
-    }
-
-    return sql
   }
 
   /**
@@ -174,6 +124,55 @@ class QueryInterfaceAbstract {
     }
 
     return this._execute(sql, values)
+  }
+
+  /**
+   * Construct condition (WHERE clause) from condition object. Note that this
+   * will mutate the values array by adding bound parameters to it.
+   */
+  _applyWhereCondition (condObj, values) {
+    return ' WHERE ' + Object
+      .keys(condObj)
+      .map(k => {
+        values.push(condObj[k])
+        return '`' + k + '` = ?'
+      })
+      .join(' AND ')
+  }
+
+  /**
+   * Applies order to select(?) query.
+   * TODO: Assertion on DESC/ASC?
+   */
+  _applyOrder (order) {
+    assert.ok(Array.isArray(order), 'opts.order must be an array')
+
+    // Wrap single order array to be able to handle it in the same way
+    const orderings = !Array.isArray(order[0])
+      ? [order]
+      : order
+
+    return ' ORDER BY ' + orderings
+      .map(o => this._strWrap(o[0], '`') + ' ' + o[1].toUpperCase())
+      .join(', ')
+  }
+
+  /**
+   * Constructs limit clause. Note that this will mutate the values array by
+   * adding the limit/offset values as bound parameter values.
+   */
+  _applyLimit (values, limit, offset = null) {
+    let sql = ''
+
+    if (offset) {
+      sql += ' LIMIT ?, ?'
+      values.push(offset, limit)
+    } else {
+      sql = ' LIMIT ?'
+      values.push(limit)
+    }
+
+    return sql
   }
 
   _strWrap (str, char) {
