@@ -361,3 +361,17 @@ describe('Querying', () => {
     })
   })
 })
+
+describe('QueryInterfaceAbstract', () => {
+  // Chasing that 100% coverage, no shame
+  test('getConnection show throw if called directly', async () => {
+    expect.assertions(1)
+    const instance = new QueryInterfaceAbstract()
+
+    try {
+      await instance._getConnection()
+    } catch (err) {
+      expect(err).toEqual(new Error('Not implemented'))
+    }
+  })
+})
