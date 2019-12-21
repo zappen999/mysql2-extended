@@ -99,6 +99,38 @@ class QueryInterfaceAbstract {
   }
 
   /**
+   * Update. Note that opts.offset will not be respected in the same way as
+   * insert, since MySQL does not support updates with offset.
+   */
+  async update (table, data, condObj = null, opts = {}) {
+    assert.ok(typeof table === 'string', 'Table must be string')
+
+    let sql = 'UPDATE ' + this._strWrap(table, '`') + ' SET'
+    const values = []
+
+    sql += ' ' + Object.keys(data)
+      .map(k => {
+        values.push(data[k])
+        return this._strWrap(k, '`') + ' = ?'
+      })
+      .join(', ')
+
+    if (condObj) {
+      sql += this._applyWhereCondition(condObj, values)
+    }
+
+    if (opts.order) {
+      sql += this._applyOrder(opts.order)
+    }
+
+    if (opts.limit) {
+      sql += this._applyLimit(values, opts.limit)
+    }
+
+    return this._execute(sql, values)
+  }
+
+  /**
    * Delete. Note that opts.offset will not be respected in the same way as
    * insert, since MySQL does not support delete's with offset.
    */

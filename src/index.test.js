@@ -142,6 +142,65 @@ describe('Querying', () => {
     })
   })
 
+  describe('Update', () => {
+    test('Should update with conditions provided', async () => {
+      const { db, driverInstance } = createTestInstance()
+      const expectedSQL = 'UPDATE `users` SET `firstname` = ? WHERE `id` = ?'
+      const expectedValues = ['Test', 3]
+      await db.update('users', { firstname: 'Test' }, { id: 3 })
+      expect(driverInstance.connections[0].logs[0][0]).toBe(expectedSQL)
+      expect(driverInstance.connections[0].logs[0][1]).toEqual(expectedValues)
+    })
+
+    test('Should update with ordering provided', async () => {
+      const { db, driverInstance } = createTestInstance()
+      const expectedSQL = 'UPDATE `users` SET `firstname` = ? ORDER BY `a` DESC'
+      await db.update(
+        'users',
+        { firstname: 'Test' },
+        null,
+        { order: ['a', 'desc'] }
+      )
+      expect(driverInstance.connections[0].logs[0][0]).toBe(expectedSQL)
+    })
+
+    test('Should update with multiple orderings provided', async () => {
+      const { db, driverInstance } = createTestInstance()
+      const expectedSQL = 'UPDATE `users` SET `firstname` = ? ' +
+        'ORDER BY `a` DESC, `b` ASC'
+      await db.update(
+        'users',
+        { firstname: 'Test' },
+        null,
+        { order: [['a', 'desc'], ['b', 'asc']] }
+      )
+      expect(driverInstance.connections[0].logs[0][0]).toBe(expectedSQL)
+    })
+
+    test('Should update with limit', async () => {
+      const { db, driverInstance } = createTestInstance()
+      const expectedSQL = 'UPDATE `users` SET `firstname` = ? LIMIT ?'
+      const expectedValues = ['Test', 3]
+      await db.update('users', { firstname: 'Test' }, null, { limit: 3 })
+      expect(driverInstance.connections[0].logs[0][0]).toBe(expectedSQL)
+      expect(driverInstance.connections[0].logs[0][1]).toEqual(expectedValues)
+    })
+
+    test('Should not respect limit with offset', async () => {
+      const { db, driverInstance } = createTestInstance()
+      const expectedSQL = 'UPDATE `users` SET `firstname` = ? LIMIT ?'
+      const expectedValues = ['Test', 3]
+      await db.update(
+        'users',
+        { firstname: 'Test' },
+        null,
+        { limit: 3, offset: 1 }
+      )
+      expect(driverInstance.connections[0].logs[0][0]).toBe(expectedSQL)
+      expect(driverInstance.connections[0].logs[0][1]).toEqual(expectedValues)
+    })
+  })
+
   describe('Delete', () => {
     test('Should delete with conditions provided', async () => {
       const { db, driverInstance } = createTestInstance()
