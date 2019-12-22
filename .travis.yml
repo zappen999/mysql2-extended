@@ -5,4 +5,4 @@ cache: npm
 
 script:
   - npm test
-  - npm run generate:coverage
+  - npm run coverage:publish
