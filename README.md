@@ -233,31 +233,52 @@ COMMIT;
 
 ---
 
-## API reference
+## API
+
+*Note that while the following typings are based on TypeScript syntax, they are
+for demonstration purposes, and will not be functioning in an TS application.*
 
 ```ts
+interface MySQL2Extended extends QueryInterfaceAbstract {
+  begin(): Promise<TransactionContext>
+  transaction((transaction: TransactionContext) => Promise<any>): Promise<any>
+}
 
-interface MySQL2Extended {
-  constructor(mysql2: MySQL2Instance)
+interface TransactionContext extends QueryInterfaceAbstract  {
+  commit(): Promise<any>
+  rollback(): Promise<void>
+}
+
+interface QueryInterfaceAbstract {
+  constructor(mysql2: MySQL2Instance): MySQL2Extended
 
   select(
     table: string
-    conditions: Conditions
-    opts: Opts
+    conditions?: Conditions
+    opts?: Opts
   ): Promise<Array<Object>>
 
   select(
     columns: string[],
     table: string,
-    conditions: Conditions
-    opts: Opts
+    conditions?: Conditions
+    opts?: SelectOpts
   ): Promise<Array<Object>>
 
-  insert(table: string, data: Object): Promise<void>
-  update(table: string, data: Object): Promise<void>
-  delete(table: string, data: Object): Promise<void>
-  begin(table: string, data: Object): Promise<void>
-  transaction((transaction: TransactionContext) => Promise<any>): Promise<any>
+  insert(table: string, data: {[column: string]: any}): Promise<void>
+
+  update(
+    table: string
+    data: {[column: string]: any}
+    conditions?: Conditions
+    opts?: Opts
+  ): Promise<void>
+
+  delete(
+    table: string
+    conditions?: Conditions
+    opts?: Opts
+  ): Promise<void>
 }
 
 interface Conditions {
@@ -266,12 +287,18 @@ interface Conditions {
 
 interface Opts {
   limit?: number
-  offset?: number // Note, not for update, delete
+  order?: [string, 'asc' | 'desc']
+  // or array of sorting tuples
+  // order?: Array<[string, 'asc' | 'desc']>
+}
+
+interface SelectOpts extends Opts {
+  offset?: number
 }
 ```
 
 ## TODO
-- Increase performance by not using map/filter/join.
+- Increase performance by optimizing hot code paths.
 - Return affected row count.
 
 ## Future
