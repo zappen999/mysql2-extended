@@ -219,7 +219,8 @@ class QueryInterfaceAbstract {
       driverArgs.push(values)
     }
 
-    return con.query(...driverArgs)
+    const [result] = await con.query(...driverArgs)
+    return result
   }
 }
 
