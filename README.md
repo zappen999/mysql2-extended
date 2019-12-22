@@ -69,7 +69,7 @@ SELECT * FROM `users` WHERE `id` = 1 AND `active` = 1;
 ```js
 const users = await db.select(
   'users',
-  { id: 1, active: 1 }, // null if no conditions are present
+  { id: 1, active: 1 }, // undefined/null if no conditions are present
   { limit: 10, offset: 5 }
 )
 ```

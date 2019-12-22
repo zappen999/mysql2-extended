@@ -74,14 +74,14 @@ describe('Querying', () => {
     test('Should select with ordering provided', async () => {
       const { db, driverInstance } = createTestInstance()
       const expectedSQL = 'SELECT * FROM `users` ORDER BY `a` DESC'
-      await db.select('users', null, { order: ['a', 'desc'] })
+      await db.select('users', undefined, { order: ['a', 'desc'] })
       expect(driverInstance.connections[0].logs[0][0]).toBe(expectedSQL)
     })
 
     test('Should select with multiple orderings provided', async () => {
       const { db, driverInstance } = createTestInstance()
       const expectedSQL = 'SELECT * FROM `users` ORDER BY `a` DESC, `b` ASC'
-      await db.select('users', null, { order: [['a', 'desc'], ['b', 'asc']] })
+      await db.select('users', undefined, { order: [['a', 'desc'], ['b', 'asc']] })
       expect(driverInstance.connections[0].logs[0][0]).toBe(expectedSQL)
     })
 
@@ -89,7 +89,7 @@ describe('Querying', () => {
       const { db, driverInstance } = createTestInstance()
       const expectedSQL = 'SELECT * FROM `users` LIMIT ?'
       const expectedValues = [3]
-      await db.select('users', null, { limit: 3 })
+      await db.select('users', undefined, { limit: 3 })
       expect(driverInstance.connections[0].logs[0][0]).toBe(expectedSQL)
       expect(driverInstance.connections[0].logs[0][1]).toEqual(expectedValues)
     })
@@ -98,7 +98,7 @@ describe('Querying', () => {
       const { db, driverInstance } = createTestInstance()
       const expectedSQL = 'SELECT * FROM `users` LIMIT ?, ?'
       const expectedValues = [1, 3]
-      await db.select('users', null, { limit: 3, offset: 1 })
+      await db.select('users', undefined, { limit: 3, offset: 1 })
       expect(driverInstance.connections[0].logs[0][0]).toBe(expectedSQL)
       expect(driverInstance.connections[0].logs[0][1]).toEqual(expectedValues)
     })
@@ -158,7 +158,7 @@ describe('Querying', () => {
       await db.update(
         'users',
         { firstname: 'Test' },
-        null,
+        undefined,
         { order: ['a', 'desc'] }
       )
       expect(driverInstance.connections[0].logs[0][0]).toBe(expectedSQL)
@@ -171,7 +171,7 @@ describe('Querying', () => {
       await db.update(
         'users',
         { firstname: 'Test' },
-        null,
+        undefined,
         { order: [['a', 'desc'], ['b', 'asc']] }
       )
       expect(driverInstance.connections[0].logs[0][0]).toBe(expectedSQL)
@@ -181,7 +181,7 @@ describe('Querying', () => {
       const { db, driverInstance } = createTestInstance()
       const expectedSQL = 'UPDATE `users` SET `firstname` = ? LIMIT ?'
       const expectedValues = ['Test', 3]
-      await db.update('users', { firstname: 'Test' }, null, { limit: 3 })
+      await db.update('users', { firstname: 'Test' }, undefined, { limit: 3 })
       expect(driverInstance.connections[0].logs[0][0]).toBe(expectedSQL)
       expect(driverInstance.connections[0].logs[0][1]).toEqual(expectedValues)
     })
@@ -193,7 +193,7 @@ describe('Querying', () => {
       await db.update(
         'users',
         { firstname: 'Test' },
-        null,
+        undefined,
         { limit: 3, offset: 1 }
       )
       expect(driverInstance.connections[0].logs[0][0]).toBe(expectedSQL)
@@ -214,14 +214,14 @@ describe('Querying', () => {
     test('Should delete with ordering provided', async () => {
       const { db, driverInstance } = createTestInstance()
       const expectedSQL = 'DELETE FROM `users` ORDER BY `a` DESC'
-      await db.delete('users', null, { order: ['a', 'desc'] })
+      await db.delete('users', undefined, { order: ['a', 'desc'] })
       expect(driverInstance.connections[0].logs[0][0]).toBe(expectedSQL)
     })
 
     test('Should delete with multiple orderings provided', async () => {
       const { db, driverInstance } = createTestInstance()
       const expectedSQL = 'DELETE FROM `users` ORDER BY `a` DESC, `b` ASC'
-      await db.delete('users', null, { order: [['a', 'desc'], ['b', 'asc']] })
+      await db.delete('users', undefined, { order: [['a', 'desc'], ['b', 'asc']] })
       expect(driverInstance.connections[0].logs[0][0]).toBe(expectedSQL)
     })
 
@@ -229,7 +229,7 @@ describe('Querying', () => {
       const { db, driverInstance } = createTestInstance()
       const expectedSQL = 'DELETE FROM `users` LIMIT ?'
       const expectedValues = [3]
-      await db.delete('users', null, { limit: 3 })
+      await db.delete('users', undefined, { limit: 3 })
       expect(driverInstance.connections[0].logs[0][0]).toBe(expectedSQL)
       expect(driverInstance.connections[0].logs[0][1]).toEqual(expectedValues)
     })
@@ -238,7 +238,7 @@ describe('Querying', () => {
       const { db, driverInstance } = createTestInstance()
       const expectedSQL = 'DELETE FROM `users` LIMIT ?'
       const expectedValues = [3]
-      await db.delete('users', null, { limit: 3, offset: 1 })
+      await db.delete('users', undefined, { limit: 3, offset: 1 })
       expect(driverInstance.connections[0].logs[0][0]).toBe(expectedSQL)
       expect(driverInstance.connections[0].logs[0][1]).toEqual(expectedValues)
     })

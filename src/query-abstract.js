@@ -210,7 +210,7 @@ class QueryInterfaceAbstract {
     return `${char}${str}${char}`
   }
 
-  async _execute (sql, values = []) {
+  async _execute (sql, values) {
     const con = await this._getConnection()
     const driverArgs = [sql]
 
