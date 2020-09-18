@@ -11,12 +11,17 @@ class QueryInterfaceAbstract {
     throw new Error('Not implemented')
   }
 
+  async _closeConnection (con) {
+    throw new Error('Not implemented')
+  }
+
   /**
    * Executes a query by using a connection from _getConnection.
    */
   async query (sql, values = []) {
     const con = await this._getConnection()
     const [results] = await con.query(sql, values)
+    this._closeConnection(con)
     return results
   }
 
@@ -220,6 +225,7 @@ class QueryInterfaceAbstract {
     }
 
     const [result] = await con.query(...driverArgs)
+    this._closeConnection(con)
     return result
   }
 }

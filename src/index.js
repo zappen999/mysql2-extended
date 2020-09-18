@@ -5,11 +5,10 @@ const { QueryInterfaceAbstract } = require('./query-abstract')
  * the possibility to start transactions.
  */
 class MySQL2Extended extends QueryInterfaceAbstract {
-  constructor (driverInstance) {
+  constructor (driverInstance, isPool = true) {
     super()
-
-    // TODO: Validate instance
     this.driverInstance = driverInstance
+    this.isPool = isPool
   }
 
   /**
@@ -20,10 +19,19 @@ class MySQL2Extended extends QueryInterfaceAbstract {
     return this.driverInstance.getConnection()
   }
 
+  async _closeConnection (con) {
+    if (this.isPool) {
+      con.release()
+    }
+  }
+
   // Fetches a connection from the driver and creates a transaction context
   async begin () {
     const con = await this._getConnection()
-    const transactionContext = new TransactionContext(con)
+    const transactionContext = new TransactionContext(
+      con,
+      this.isPool
+    )
     await transactionContext._begin()
     return transactionContext
   }
@@ -45,9 +53,10 @@ class MySQL2Extended extends QueryInterfaceAbstract {
 }
 
 class TransactionContext extends QueryInterfaceAbstract {
-  constructor (con) {
+  constructor (con, isPool) {
     super()
     this.con = con
+    this.isPool = isPool
     this.lastAction = null
   }
 
@@ -58,6 +67,12 @@ class TransactionContext extends QueryInterfaceAbstract {
    */
   async _getConnection () {
     return this.con
+  }
+
+  async _closeConnection (con) {
+    if (this.isPool) {
+      con.release(con)
+    }
   }
 
   async _begin () {

@@ -29,9 +29,9 @@ describe('Querying', () => {
       const { db, driverInstance } = createTestInstance()
       const query = 'SELECT * FROM a WHERE id = ?'
       await db.query(query)
-      expect(driverInstance.connections.length).toBe(1)
-      expect(driverInstance.connections[0].logs.length).toBe(1)
-      expect(driverInstance.connections[0].logs[0][0]).toBe(query)
+      expect(driverInstance.closedCons.length).toBe(1)
+      expect(driverInstance.closedCons[0].logs.length).toBe(1)
+      expect(driverInstance.closedCons[0].logs[0][0]).toBe(query)
     })
 
     test('Should pass query to db driver with parameter binding', async () => {
@@ -39,10 +39,18 @@ describe('Querying', () => {
       const query = 'SELECT * FROM a WHERE id = ?'
       const values = [1]
       await db.query(query, values)
-      expect(driverInstance.connections.length).toBe(1)
-      expect(driverInstance.connections[0].logs.length).toBe(1)
-      expect(driverInstance.connections[0].logs[0][0]).toBe(query)
-      expect(driverInstance.connections[0].logs[0][1]).toBe(values)
+      expect(driverInstance.closedCons.length).toBe(1)
+      expect(driverInstance.closedCons[0].logs.length).toBe(1)
+      expect(driverInstance.closedCons[0].logs[0][0]).toBe(query)
+      expect(driverInstance.closedCons[0].logs[0][1]).toBe(values)
+    })
+
+    it('should release connection after query', async () => {
+      const { db, driverInstance } = createTestInstance()
+
+      await db.query('SELECT * from users')
+
+      expect(driverInstance.openCons.length).toBe(0)
     })
   })
 
@@ -51,14 +59,14 @@ describe('Querying', () => {
       const { db, driverInstance } = createTestInstance()
       const expectedSQL = 'SELECT * FROM `users`'
       await db.select('users')
-      expect(driverInstance.connections[0].logs[0][0]).toBe(expectedSQL)
+      expect(driverInstance.closedCons[0].logs[0][0]).toBe(expectedSQL)
     })
 
     test('Should select columns specified', async () => {
       const { db, driverInstance } = createTestInstance()
       const expectedSQL = 'SELECT `firstname`, `lastname` FROM `users`'
       await db.select(['firstname', 'lastname'], 'users')
-      expect(driverInstance.connections[0].logs[0][0]).toBe(expectedSQL)
+      expect(driverInstance.closedCons[0].logs[0][0]).toBe(expectedSQL)
     })
 
     test('Should select with conditions provided', async () => {
@@ -67,22 +75,22 @@ describe('Querying', () => {
         '`firstname` = ?'
       const expectedValues = [3, 'Test']
       await db.select('users', { id: 3, firstname: 'Test' })
-      expect(driverInstance.connections[0].logs[0][0]).toBe(expectedSQL)
-      expect(driverInstance.connections[0].logs[0][1]).toEqual(expectedValues)
+      expect(driverInstance.closedCons[0].logs[0][0]).toBe(expectedSQL)
+      expect(driverInstance.closedCons[0].logs[0][1]).toEqual(expectedValues)
     })
 
     test('Should select with ordering provided', async () => {
       const { db, driverInstance } = createTestInstance()
       const expectedSQL = 'SELECT * FROM `users` ORDER BY `a` DESC'
       await db.select('users', undefined, { order: ['a', 'desc'] })
-      expect(driverInstance.connections[0].logs[0][0]).toBe(expectedSQL)
+      expect(driverInstance.closedCons[0].logs[0][0]).toBe(expectedSQL)
     })
 
     test('Should select with multiple orderings provided', async () => {
       const { db, driverInstance } = createTestInstance()
       const expectedSQL = 'SELECT * FROM `users` ORDER BY `a` DESC, `b` ASC'
       await db.select('users', undefined, { order: [['a', 'desc'], ['b', 'asc']] })
-      expect(driverInstance.connections[0].logs[0][0]).toBe(expectedSQL)
+      expect(driverInstance.closedCons[0].logs[0][0]).toBe(expectedSQL)
     })
 
     test('Should select with limit', async () => {
@@ -90,8 +98,8 @@ describe('Querying', () => {
       const expectedSQL = 'SELECT * FROM `users` LIMIT ?'
       const expectedValues = [3]
       await db.select('users', undefined, { limit: 3 })
-      expect(driverInstance.connections[0].logs[0][0]).toBe(expectedSQL)
-      expect(driverInstance.connections[0].logs[0][1]).toEqual(expectedValues)
+      expect(driverInstance.closedCons[0].logs[0][0]).toBe(expectedSQL)
+      expect(driverInstance.closedCons[0].logs[0][1]).toEqual(expectedValues)
     })
 
     test('Should select with limit and offset', async () => {
@@ -99,8 +107,16 @@ describe('Querying', () => {
       const expectedSQL = 'SELECT * FROM `users` LIMIT ?, ?'
       const expectedValues = [1, 3]
       await db.select('users', undefined, { limit: 3, offset: 1 })
-      expect(driverInstance.connections[0].logs[0][0]).toBe(expectedSQL)
-      expect(driverInstance.connections[0].logs[0][1]).toEqual(expectedValues)
+      expect(driverInstance.closedCons[0].logs[0][0]).toBe(expectedSQL)
+      expect(driverInstance.closedCons[0].logs[0][1]).toEqual(expectedValues)
+    })
+
+    it('should release connection after select', async () => {
+      const { db, driverInstance } = createTestInstance()
+
+      await db.select('users')
+
+      expect(driverInstance.openCons.length).toBe(0)
     })
   })
 
@@ -111,8 +127,8 @@ describe('Querying', () => {
         'VALUES (?, ?)'
       const expectedValues = ['Test', 'Testsson']
       await db.insert('users', { firstname: 'Test', lastname: 'Testsson' })
-      expect(driverInstance.connections[0].logs[0][0]).toBe(expectedSQL)
-      expect(driverInstance.connections[0].logs[0][1]).toEqual(expectedValues)
+      expect(driverInstance.closedCons[0].logs[0][0]).toBe(expectedSQL)
+      expect(driverInstance.closedCons[0].logs[0][1]).toEqual(expectedValues)
     })
 
     test('Should insert multiple rows', async () => {
@@ -124,8 +140,8 @@ describe('Querying', () => {
         { firstname: 'Test', lastname: 'Testsson' },
         { firstname: 'Try', lastname: 'Trysson' }
       ])
-      expect(driverInstance.connections[0].logs[0][0]).toBe(expectedSQL)
-      expect(driverInstance.connections[0].logs[0][1]).toEqual(expectedValues)
+      expect(driverInstance.closedCons[0].logs[0][0]).toBe(expectedSQL)
+      expect(driverInstance.closedCons[0].logs[0][1]).toEqual(expectedValues)
     })
 
     test('Should throw error if no rows are provided', async () => {
@@ -148,8 +164,8 @@ describe('Querying', () => {
       const expectedSQL = 'UPDATE `users` SET `firstname` = ? WHERE `id` = ?'
       const expectedValues = ['Test', 3]
       await db.update('users', { firstname: 'Test' }, { id: 3 })
-      expect(driverInstance.connections[0].logs[0][0]).toBe(expectedSQL)
-      expect(driverInstance.connections[0].logs[0][1]).toEqual(expectedValues)
+      expect(driverInstance.closedCons[0].logs[0][0]).toBe(expectedSQL)
+      expect(driverInstance.closedCons[0].logs[0][1]).toEqual(expectedValues)
     })
 
     test('Should update with ordering provided', async () => {
@@ -161,7 +177,7 @@ describe('Querying', () => {
         undefined,
         { order: ['a', 'desc'] }
       )
-      expect(driverInstance.connections[0].logs[0][0]).toBe(expectedSQL)
+      expect(driverInstance.closedCons[0].logs[0][0]).toBe(expectedSQL)
     })
 
     test('Should update with multiple orderings provided', async () => {
@@ -174,7 +190,7 @@ describe('Querying', () => {
         undefined,
         { order: [['a', 'desc'], ['b', 'asc']] }
       )
-      expect(driverInstance.connections[0].logs[0][0]).toBe(expectedSQL)
+      expect(driverInstance.closedCons[0].logs[0][0]).toBe(expectedSQL)
     })
 
     test('Should update with limit', async () => {
@@ -182,8 +198,8 @@ describe('Querying', () => {
       const expectedSQL = 'UPDATE `users` SET `firstname` = ? LIMIT ?'
       const expectedValues = ['Test', 3]
       await db.update('users', { firstname: 'Test' }, undefined, { limit: 3 })
-      expect(driverInstance.connections[0].logs[0][0]).toBe(expectedSQL)
-      expect(driverInstance.connections[0].logs[0][1]).toEqual(expectedValues)
+      expect(driverInstance.closedCons[0].logs[0][0]).toBe(expectedSQL)
+      expect(driverInstance.closedCons[0].logs[0][1]).toEqual(expectedValues)
     })
 
     test('Should not respect limit with offset', async () => {
@@ -196,8 +212,8 @@ describe('Querying', () => {
         undefined,
         { limit: 3, offset: 1 }
       )
-      expect(driverInstance.connections[0].logs[0][0]).toBe(expectedSQL)
-      expect(driverInstance.connections[0].logs[0][1]).toEqual(expectedValues)
+      expect(driverInstance.closedCons[0].logs[0][0]).toBe(expectedSQL)
+      expect(driverInstance.closedCons[0].logs[0][1]).toEqual(expectedValues)
     })
   })
 
@@ -207,22 +223,22 @@ describe('Querying', () => {
       const expectedSQL = 'DELETE FROM `users` WHERE `id` = ?'
       const expectedValues = [3]
       await db.delete('users', { id: 3 })
-      expect(driverInstance.connections[0].logs[0][0]).toBe(expectedSQL)
-      expect(driverInstance.connections[0].logs[0][1]).toEqual(expectedValues)
+      expect(driverInstance.closedCons[0].logs[0][0]).toBe(expectedSQL)
+      expect(driverInstance.closedCons[0].logs[0][1]).toEqual(expectedValues)
     })
 
     test('Should delete with ordering provided', async () => {
       const { db, driverInstance } = createTestInstance()
       const expectedSQL = 'DELETE FROM `users` ORDER BY `a` DESC'
       await db.delete('users', undefined, { order: ['a', 'desc'] })
-      expect(driverInstance.connections[0].logs[0][0]).toBe(expectedSQL)
+      expect(driverInstance.closedCons[0].logs[0][0]).toBe(expectedSQL)
     })
 
     test('Should delete with multiple orderings provided', async () => {
       const { db, driverInstance } = createTestInstance()
       const expectedSQL = 'DELETE FROM `users` ORDER BY `a` DESC, `b` ASC'
       await db.delete('users', undefined, { order: [['a', 'desc'], ['b', 'asc']] })
-      expect(driverInstance.connections[0].logs[0][0]).toBe(expectedSQL)
+      expect(driverInstance.closedCons[0].logs[0][0]).toBe(expectedSQL)
     })
 
     test('Should delete with limit', async () => {
@@ -230,8 +246,8 @@ describe('Querying', () => {
       const expectedSQL = 'DELETE FROM `users` LIMIT ?'
       const expectedValues = [3]
       await db.delete('users', undefined, { limit: 3 })
-      expect(driverInstance.connections[0].logs[0][0]).toBe(expectedSQL)
-      expect(driverInstance.connections[0].logs[0][1]).toEqual(expectedValues)
+      expect(driverInstance.closedCons[0].logs[0][0]).toBe(expectedSQL)
+      expect(driverInstance.closedCons[0].logs[0][1]).toEqual(expectedValues)
     })
 
     test('Should not respect limit with offset', async () => {
@@ -239,8 +255,8 @@ describe('Querying', () => {
       const expectedSQL = 'DELETE FROM `users` LIMIT ?'
       const expectedValues = [3]
       await db.delete('users', undefined, { limit: 3, offset: 1 })
-      expect(driverInstance.connections[0].logs[0][0]).toBe(expectedSQL)
-      expect(driverInstance.connections[0].logs[0][1]).toEqual(expectedValues)
+      expect(driverInstance.closedCons[0].logs[0][0]).toBe(expectedSQL)
+      expect(driverInstance.closedCons[0].logs[0][1]).toEqual(expectedValues)
     })
 
     // TODO: See how mysql2 returns the affected row count
@@ -248,7 +264,7 @@ describe('Querying', () => {
     //   const { db, driverInstance } = createTestInstance()
     //   const expectedSQL = 'DELETE FROM `users`'
     //   const count = await db.delete('users')
-    //   expect(driverInstance.connections[0].logs[0][0]).toBe(expectedSQL)
+    //   expect(driverInstance.closedCons[0].logs[0][0]).toBe(expectedSQL)
     // })
   })
 
@@ -267,12 +283,32 @@ describe('Querying', () => {
         await transaction.select('users')
         await transaction.commit()
 
-        expect(driverInstance.connections.length).toBe(1)
-        const queries = driverInstance.connections[0].logs
+        expect(driverInstance.closedCons.length).toBe(1)
+        const queries = driverInstance.closedCons[0].logs
         expect(queries[0][0]).toEqual('BEGIN')
         expect(queries[1][0]).toEqual('SELECT * FROM `users`')
         expect(queries[2][0]).toEqual('COMMIT')
       })
+    })
+
+    it('should release connections after commit', async () => {
+      const { db, driverInstance } = createTestInstance()
+
+      const transaction = await db.begin()
+      await transaction.select('users')
+      await transaction.commit()
+
+      expect(driverInstance.openCons.length).toBe(0)
+    })
+
+    it('should release connections after rollback', async () => {
+      const { db, driverInstance } = createTestInstance()
+
+      const transaction = await db.begin()
+      await transaction.select('users')
+      await transaction.rollback()
+
+      expect(driverInstance.openCons.length).toBe(0)
     })
 
     it('Should throw if committing twice', async () => {
@@ -338,8 +374,8 @@ describe('Querying', () => {
         expect(err).toEqual(new Error('Oopsy'))
       }
 
-      expect(driverInstance.connections.length).toBe(1)
-      const queries = driverInstance.connections[0].logs
+      expect(driverInstance.closedCons.length).toBe(1)
+      const queries = driverInstance.closedCons[0].logs
       expect(queries[0][0]).toEqual('BEGIN')
       expect(queries[1][0]).toEqual('SELECT * FROM `users`')
       expect(queries[2][0]).toEqual('ROLLBACK')
@@ -353,8 +389,8 @@ describe('Querying', () => {
         await transaction.select('users')
       })
 
-      expect(driverInstance.connections.length).toBe(1)
-      const queries = driverInstance.connections[0].logs
+      expect(driverInstance.closedCons.length).toBe(1)
+      const queries = driverInstance.closedCons[0].logs
       expect(queries[0][0]).toEqual('BEGIN')
       expect(queries[1][0]).toEqual('SELECT * FROM `users`')
       expect(queries[2][0]).toEqual('COMMIT')
