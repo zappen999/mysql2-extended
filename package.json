@@ -12,9 +12,9 @@
   "author": "Johan Kanefur <johan@kanefur.se>",
   "license": "GPL-3.0",
   "devDependencies": {
-    "coveralls": "^3.0.9",
-    "jest": "^24.9.0",
-    "mysql2": "^1.7.0",
-    "standard": "^14.3.1"
+    "coveralls": "^3.1.0",
+    "jest": "^26.4.2",
+    "mysql2": "^2.2.1",
+    "standard": "^14.3.4"
   }
 }
