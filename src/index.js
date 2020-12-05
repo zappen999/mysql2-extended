@@ -40,8 +40,10 @@ class MySQL2Extended extends QueryInterfaceAbstract {
   async transaction (callback) {
     const transaction = await this.begin()
 
+    let result
+
     try {
-      await callback(transaction)
+      result = await callback(transaction)
       await transaction.commit()
     } catch (err) {
       // Error somewhere in the user code, roll back and throw
@@ -49,6 +51,8 @@ class MySQL2Extended extends QueryInterfaceAbstract {
       await transaction.rollback()
       throw err
     }
+
+    return result
   }
 }
 
