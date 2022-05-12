@@ -1,3 +1,4 @@
+import type { MySQL2Extended } from './index';
 export type DataValue = string | number;
 export type BindValue = DataValue;
 export type Row = Record<string, any>;
@@ -39,3 +40,13 @@ export interface QueryInterface {
 		opts?: Opts,
 	): Promise<unknown>;
 }
+
+// Convenience types:
+
+export type OptionalDefaultFields<
+	TableT,
+	DefaultFieldsT extends keyof TableT,
+> = Omit<TableT, DefaultFieldsT> & Partial<Pick<TableT, DefaultFieldsT>>;
+
+export type Con = QueryInterface;
+export type Db = MySQL2Extended;
