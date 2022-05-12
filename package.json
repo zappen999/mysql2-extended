@@ -1,6 +1,6 @@
 {
 	"name": "mysql2-extended",
-	"version": "0.2.1",
+	"version": "1.0.0",
 	"description": "Thin convenience layer for mysql2 library.",
 	"main": "src/index.ts",
 	"scripts": {
