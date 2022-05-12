@@ -1,20 +1,22 @@
 import type { Connection, Pool, PoolConnection } from 'mysql2/promise';
 import { QueryBase } from './query-base';
 
+export * from './types';
+
 export class MySQL2Extended extends QueryBase {
 	constructor(protected driver: Pool | Connection | PoolConnection) {
 		super(driver);
 	}
 
-	async begin(): Promise<TransactionContext> {
+	async begin(): Promise<Transaction> {
 		const con = await this.getConnection();
-		const transactionContext = new TransactionContext(con);
+		const transactionContext = new Transaction(con);
 		await transactionContext._begin();
 		return transactionContext;
 	}
 
 	async transaction<ResultT>(
-		callback: (transaction: TransactionContext) => Promise<ResultT>,
+		callback: (transaction: Transaction) => Promise<ResultT>,
 	): Promise<ResultT> {
 		const transaction = await this.begin();
 
@@ -32,7 +34,7 @@ export class MySQL2Extended extends QueryBase {
 	}
 }
 
-export class TransactionContext extends QueryBase {
+export class Transaction extends QueryBase {
 	protected hasBegin = false;
 	protected lastAction?: 'COMMIT' | 'ROLLBACK';
 
