@@ -171,7 +171,11 @@ describe('Querying', () => {
 			const { db, driverInstance } = createTestInstance();
 			const expectedSQL = 'UPDATE `users` SET `firstname` = ? WHERE `id` = ?';
 			const expectedValues = ['Test', 3];
-			await db.update('users', { firstname: 'Test' }, { id: 3 });
+			await db.update<{ firstname: string; id?: number }>(
+				'users',
+				{ firstname: 'Test' },
+				{ id: 3 },
+			);
 			expect(driverInstance.closedCons[0]?.logs[0][0]).toBe(expectedSQL);
 			expect(driverInstance.closedCons[0]?.logs[0][1]).toEqual(expectedValues);
 		});
