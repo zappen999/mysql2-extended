@@ -32,7 +32,7 @@ export class MySQL2Extended extends QueryBase {
 	}
 }
 
-class TransactionContext extends QueryBase {
+export class TransactionContext extends QueryBase {
 	protected hasBegin = false;
 	protected lastAction?: 'COMMIT' | 'ROLLBACK';
 
