@@ -1,8 +1,11 @@
 language: node_js
 node_js:
-  - "10"
-cache: npm
+  - lts/*
+cache:
+  yarn: true
+  directories:
+    - node_modules
 
 script:
-  - npm test
-  - npm run coverage:publish
+  - yarn test
+  - yarn coverage:publish

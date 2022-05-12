@@ -1,20 +1,25 @@
 {
-  "name": "mysql2-extended",
-  "version": "0.2.1",
-  "description": "Thin convenience layer for mysql2 library.",
-  "main": "src/index.js",
-  "scripts": {
-    "test": "./node_modules/.bin/jest",
-    "test:watch": "./node_modules/.bin/jest --watchAll",
-    "coverage:generate": "./node_modules/.bin/jest --coverage",
-    "coverage:publish": "./node_modules/.bin/jest --coverage --coverageReporters=text-lcov | npx coveralls && rm -rf coverage/"
-  },
-  "author": "Johan Kanefur <johan@kanefur.se>",
-  "license": "GPL-3.0",
-  "devDependencies": {
-    "@mobajl/eslint-config": "^1.1.2",
-    "coveralls": "^3.1.0",
-    "jest": "^26.4.2",
-    "mysql2": "^2.2.1"
-  }
+	"name": "mysql2-extended",
+	"version": "0.2.1",
+	"description": "Thin convenience layer for mysql2 library.",
+	"main": "src/index.ts",
+	"scripts": {
+		"build": "./node_modules/.bin/tsc",
+		"test": "./node_modules/.bin/jest",
+		"test:watch": "./node_modules/.bin/jest --watchAll",
+		"coverage:generate": "./node_modules/.bin/jest --coverage",
+		"coverage:publish": "./node_modules/.bin/jest --coverage --coverageReporters=text-lcov | npx coveralls && rm -rf coverage/"
+	},
+	"author": "Johan Kanefur <johan@kanefur.se>",
+	"license": "GPL-3.0",
+	"devDependencies": {
+		"@mobajl/eslint-config": "^1.1.2",
+		"@mobajl/prettier-config": "^1.0.1",
+		"coveralls": "^3.1.0",
+		"eslint": "^7",
+		"jest": "^26.4.2",
+		"mysql2": "^2.2.1",
+		"prettier": "^2.6.2",
+		"typescript": "^4.6.4"
+	}
 }
