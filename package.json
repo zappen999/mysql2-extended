@@ -12,6 +12,9 @@
 	},
 	"author": "Johan Kanefur <johan@kanefur.se>",
 	"license": "GPL-3.0",
+	"peerDependencies": {
+		"mysql2": "^2"
+	},
 	"devDependencies": {
 		"@mobajl/eslint-config": "^1.1.2",
 		"@mobajl/prettier-config": "^1.0.1",
