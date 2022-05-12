@@ -18,15 +18,15 @@ export class QueryBase implements QueryInterface {
 		return this.execute(sql, values);
 	}
 
-	async select<RowT>(
+	async select<RowT extends Row>(
 		tableOrCols: string | string[],
-		tableOrCond?: string | Condition,
-		condOrOpts?: Condition | Opts,
+		tableOrCond?: string | Condition<RowT>,
+		condOrOpts?: Condition<RowT> | Opts,
 		opts?: Opts,
 	): Promise<RowT[]> {
 		let table: string;
 		let cols: string[] | '*';
-		let cond: Condition | undefined;
+		let cond: Condition<RowT> | undefined;
 		let opt: Opts | undefined;
 
 		if (typeof tableOrCols === 'string') {
@@ -98,7 +98,7 @@ export class QueryBase implements QueryInterface {
 	async update<RowT extends Row>(
 		table: string,
 		data: RowT,
-		cond?: Condition,
+		cond?: Condition<RowT>,
 		opts?: Opts,
 	): Promise<unknown> {
 		let sql = 'UPDATE ' + this.strWrap(table) + ' SET';
@@ -132,7 +132,11 @@ export class QueryBase implements QueryInterface {
 		return this.execute(sql, values);
 	}
 
-	async delete(table: string, cond?: Condition, opts?: Opts): Promise<unknown> {
+	async delete<RowT extends Row>(
+		table: string,
+		cond?: Condition<RowT>,
+		opts?: Opts,
+	): Promise<unknown> {
 		let sql = 'DELETE';
 		const values: BindValue[] = [];
 
@@ -163,7 +167,10 @@ export class QueryBase implements QueryInterface {
 		return `${char}${str}${char}`;
 	}
 
-	protected applyWhereCondition(cond: Condition, values: BindValue[]): string {
+	protected applyWhereCondition(
+		cond: Condition<any>,
+		values: BindValue[],
+	): string {
 		return (
 			' WHERE ' +
 			Object.keys(cond)
