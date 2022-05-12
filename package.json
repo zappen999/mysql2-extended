@@ -1,6 +1,6 @@
 {
 	"name": "mysql2-extended",
-	"version": "1.0.3",
+	"version": "1.0.4",
 	"description": "Thin convenience layer for mysql2 library.",
 	"main": "dist/index.js",
 	"typings": "dist/index.d.ts",
@@ -14,8 +14,8 @@
 		"coverage:generate": "jest --coverage",
 		"coverage:publish": "jest --coverage --coverageReporters=text-lcov | coveralls && rm -rf coverage/"
 	},
-	"engines" : {
-		"node" : ">=12.9.0"
+	"engines": {
+		"node": ">=12.9.0"
 	},
 	"author": "Johan Kanefur <johan@kanefur.se>",
 	"license": "GPL-3.0",
