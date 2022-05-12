@@ -8,11 +8,14 @@
 		"dist/**/*"
 	],
 	"scripts": {
-		"build": "tsc",
+		"build": "rm -r ./dist && tsc",
 		"test": "jest",
 		"test:watch": "jest --watchAll",
 		"coverage:generate": "jest --coverage",
 		"coverage:publish": "jest --coverage --coverageReporters=text-lcov | coveralls && rm -rf coverage/"
+	},
+	"engines" : {
+		"node" : ">=12.9.0"
 	},
 	"author": "Johan Kanefur <johan@kanefur.se>",
 	"license": "GPL-3.0",
