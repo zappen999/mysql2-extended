@@ -1,7 +1,11 @@
 {
 	"compilerOptions": {
 		"noEmit": true,
+		"incremental": true,
 		"esModuleInterop": true,
+		"module": "commonjs",
+		"declaration": true,
+		"outDir": "./dist",
 		"target": "es5",
 		"lib": ["es6"],
 		"importsNotUsedAsValues": "error",

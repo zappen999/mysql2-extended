@@ -1,4 +1,5 @@
 import type { Connection, Pool, PoolConnection } from 'mysql2/promise';
+
 import { QueryBase } from './query-base';
 
 export * from './types';
