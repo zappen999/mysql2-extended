@@ -2,8 +2,6 @@ import { MySQL2Extended } from './index';
 import { MySQL2Mock } from './mocks/mysql2';
 import { QueryBase } from './query-base';
 
-console.log({ MySQL2Extended, QueryBase });
-
 function createTestInstance(): {
 	driverInstance: MySQL2Mock;
 	db: MySQL2Extended;
