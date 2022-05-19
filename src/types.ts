@@ -1,3 +1,5 @@
+import type { Connection, PoolConnection } from 'mysql2/promise';
+
 import type { MySQL2Extended } from './index';
 export type DataValue = string | number;
 export type BindValue = DataValue;
@@ -12,6 +14,8 @@ export type Opts = {
 	limit?: number;
 	order?: OrderBy;
 };
+
+export type SingleConnection = Connection | PoolConnection;
 
 export interface QueryInterface {
 	query<RowT extends Row>(sql: string, values?: BindValue[]): Promise<RowT[]>;

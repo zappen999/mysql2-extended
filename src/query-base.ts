@@ -161,6 +161,24 @@ export class QueryBase implements QueryInterface {
 		return this.execute(sql, values);
 	}
 
+	async getLastInsertId(): Promise<number> {
+		if (this.isPool(this.driver)) {
+			throw new Error(
+				'getLastInsertId is not predictable on pool connection, use a normal connection or transaction instead.',
+			);
+		}
+
+		const [row] = await this.execute<{ id: number }>(
+			'SELECT LAST_INSERT_ID() as id',
+		);
+
+		if (!row || row.id === 0) {
+			throw new Error('No LAST_INSERT_ID found');
+		}
+
+		return row.id;
+	}
+
 	// Protected below...
 
 	protected strWrap(str: string, char = '`'): string {

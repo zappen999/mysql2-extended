@@ -1,11 +1,12 @@
-import type { Connection, Pool, PoolConnection } from 'mysql2/promise';
+import type { Pool } from 'mysql2/promise';
 
 import { QueryBase } from './query-base';
+import type { SingleConnection } from './types';
 
 export * from './types';
 
 export class MySQL2Extended extends QueryBase {
-	constructor(protected driver: Pool | Connection | PoolConnection) {
+	constructor(protected driver: Pool | SingleConnection) {
 		super(driver);
 	}
 
@@ -39,7 +40,7 @@ export class Transaction extends QueryBase {
 	protected hasBegin = false;
 	protected lastAction?: 'COMMIT' | 'ROLLBACK';
 
-	constructor(protected con: Connection | PoolConnection) {
+	constructor(protected con: SingleConnection) {
 		super(con);
 	}
 
@@ -63,7 +64,7 @@ export class Transaction extends QueryBase {
 		await this.con.query('ROLLBACK');
 	}
 
-	validateCleanAndMarkDirty(action: 'COMMIT' | 'ROLLBACK') {
+	validateCleanAndMarkDirty(action: 'COMMIT' | 'ROLLBACK'): void {
 		if (!this.lastAction) {
 			this.lastAction = action;
 			return;
