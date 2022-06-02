@@ -1,7 +1,7 @@
 import type { Connection, PoolConnection } from 'mysql2/promise';
 
 import type { MySQL2Extended } from './index';
-export type DataValue = string | number;
+export type DataValue = string | number | null;
 export type BindValue = DataValue;
 export type Row = Record<string, any>;
 export type Condition<RowT extends Record<string, BindValue>> = {
