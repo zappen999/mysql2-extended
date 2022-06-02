@@ -19,12 +19,19 @@ export type SingleConnection = Connection | PoolConnection;
 
 export interface QueryInterface {
 	query<RowT extends Row>(sql: string, values?: BindValue[]): Promise<RowT[]>;
+	queryOne<RowT extends Row>(sql: string, values?: BindValue[]): Promise<RowT>;
 
 	select<RowT extends Row>(
 		table: string,
 		cond: Condition<RowT> | undefined,
 		opts: Opts | undefined,
 	): Promise<RowT[]>;
+
+	selectOne<RowT extends Row>(
+		table: string,
+		cond: Condition<RowT> | undefined,
+		opts: Opts | undefined,
+	): Promise<RowT>;
 
 	insert<RowT extends Row>(
 		table: string,

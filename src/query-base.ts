@@ -18,6 +18,16 @@ export class QueryBase implements QueryInterface {
 		return this.execute(sql, values);
 	}
 
+	async queryOne<RowT>(sql: string, values?: BindValue[]): Promise<RowT> {
+		const rows = await this.execute<RowT>(sql, values);
+
+		if (rows.length !== 1 || !rows[0]) {
+			throw new Error(`Expected one row, got ${rows.length} rows`);
+		}
+
+		return rows[0];
+	}
+
 	async select<RowT extends Row>(
 		tableOrCols: string | string[],
 		tableOrCond?: string | Condition<RowT>,
@@ -66,6 +76,21 @@ export class QueryBase implements QueryInterface {
 		}
 
 		return this.execute(sql, values);
+	}
+
+	async selectOne<RowT extends Row>(
+		tableOrCols: string | string[],
+		tableOrCond?: string | Condition<RowT>,
+		condOrOpts?: Condition<RowT> | Opts,
+		opts?: Opts,
+	): Promise<RowT> {
+		const rows = await this.select(tableOrCols, tableOrCond, condOrOpts, opts);
+
+		if (rows.length !== 1 || !rows[0]) {
+			throw new Error(`Expected one row, got ${rows.length} rows`);
+		}
+
+		return rows[0];
 	}
 
 	async insert<RowT>(table: string, data: RowT | RowT[]): Promise<unknown> {
