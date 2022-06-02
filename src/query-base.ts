@@ -97,16 +97,21 @@ export class QueryBase implements QueryInterface {
 
 	async update<RowT extends Row>(
 		table: string,
-		data: RowT,
+		data: Partial<RowT>,
 		cond?: Condition<RowT>,
 		opts?: Opts,
 	): Promise<unknown> {
 		let sql = 'UPDATE ' + this.strWrap(table) + ' SET';
 		const values: BindValue[] = [];
+		const keys = Object.keys(data);
+
+		if (!keys.length) {
+			return;
+		}
 
 		sql +=
 			' ' +
-			Object.keys(data)
+			keys
 				.map((k) => {
 					values.push(data[k]!);
 					return this.strWrap(k) + ' = ?';

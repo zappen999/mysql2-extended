@@ -33,7 +33,7 @@ export interface QueryInterface {
 
 	update<RowT extends Row>(
 		table: string,
-		data: RowT,
+		data: Partial<RowT>,
 		where?: Condition<RowT>,
 		opts?: Opts,
 	): Promise<unknown>;
