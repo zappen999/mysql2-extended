@@ -215,6 +215,7 @@ export class QueryBase implements QueryInterface {
 		return `${char}${str}${char}`;
 	}
 
+	// TODO: Transform condition of array-type into IN() clause
 	protected applyWhereCondition(
 		cond: Condition<any>,
 		values: BindValue[],
