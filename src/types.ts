@@ -22,15 +22,17 @@ export interface QueryInterface {
 	queryOne<RowT extends Row>(sql: string, values?: BindValue[]): Promise<RowT>;
 
 	select<RowT extends Row>(
-		table: string,
-		cond: Condition<RowT> | undefined,
-		opts: Opts | undefined,
+		tableOrCols: string | string[],
+		tableOrCond?: string | Condition<RowT>,
+		condOrOpts?: Condition<RowT> | Opts,
+		opts?: Opts,
 	): Promise<RowT[]>;
 
 	selectOne<RowT extends Row>(
-		table: string,
-		cond: Condition<RowT> | undefined,
-		opts: Opts | undefined,
+		tableOrCols: string | string[],
+		tableOrCond?: string | Condition<RowT>,
+		condOrOpts?: Condition<RowT> | Opts,
+		opts?: Opts,
 	): Promise<RowT>;
 
 	insert<RowT extends Row>(
