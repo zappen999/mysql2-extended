@@ -77,6 +77,16 @@ describe('Querying', () => {
 			expect(driverInstance.closedCons[0]?.logs[0][1]).toEqual(expectedValues);
 		});
 
+		it('should use IN() if bind-value is array', async () => {
+			const { db, driverInstance } = createTestInstance();
+			const expectedSQL =
+				'SELECT * FROM `users` WHERE `id` IN(?) AND ' + '`firstname` = ?';
+			const expectedValues = [[2, 3], 'Test'];
+			await db.select('users', { id: [2, 3], firstname: 'Test' });
+			expect(driverInstance.closedCons[0]?.logs[0][0]).toBe(expectedSQL);
+			expect(driverInstance.closedCons[0]?.logs[0][1]).toEqual(expectedValues);
+		});
+
 		it('Should select with ordering provided', async () => {
 			const { db, driverInstance } = createTestInstance();
 			const expectedSQL = 'SELECT * FROM `users` ORDER BY `a` DESC';

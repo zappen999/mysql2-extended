@@ -215,7 +215,6 @@ export class QueryBase implements QueryInterface {
 		return `${char}${str}${char}`;
 	}
 
-	// TODO: Transform condition of array-type into IN() clause
 	protected applyWhereCondition(
 		cond: Condition<any>,
 		values: BindValue[],
@@ -225,7 +224,8 @@ export class QueryBase implements QueryInterface {
 			Object.keys(cond)
 				.map((k) => {
 					values.push(cond[k]!);
-					return '`' + k + '` = ?';
+
+					return '`' + k + '`' + (Array.isArray(cond[k]!) ? ' IN(?)' : ' = ?');
 				})
 				.join(' AND ')
 		);
