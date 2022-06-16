@@ -174,6 +174,37 @@ describe('Querying', () => {
 		});
 	});
 
+	describe('Upsert', () => {
+		it('should produce upsert query', async () => {
+			const { db, driverInstance } = createTestInstance();
+			const expectedSQL =
+				'INSERT INTO `users` (`firstname`, `lastname`) VALUES (?, ?) ' +
+				'ON DUPLICATE KEY UPDATE ' +
+				'`firstname` = COALESCE(VALUES(`firstname`), `firstname`), ' +
+				'`lastname` = COALESCE(VALUES(`lastname`), `lastname`)';
+			const expectedValues = ['Test', 'Testsson'];
+			await db.upsert('users', { firstname: 'Test', lastname: 'Testsson' });
+			expect(driverInstance.closedCons[0]?.logs[0][0]).toBe(expectedSQL);
+			expect(driverInstance.closedCons[0]?.logs[0][1]).toEqual(expectedValues);
+		});
+
+		it('should produce upsert query with multiple rows', async () => {
+			const { db, driverInstance } = createTestInstance();
+			const expectedSQL =
+				'INSERT INTO `users` (`firstname`, `lastname`) VALUES (?, ?), (?, ?) ' +
+				'ON DUPLICATE KEY UPDATE ' +
+				'`firstname` = COALESCE(VALUES(`firstname`), `firstname`), ' +
+				'`lastname` = COALESCE(VALUES(`lastname`), `lastname`)';
+			const expectedValues = ['Test', 'Testsson', 'Test2', 'Testsson2'];
+			await db.upsert('users', [
+				{ firstname: 'Test', lastname: 'Testsson' },
+				{ firstname: 'Test2', lastname: 'Testsson2' },
+			]);
+			expect(driverInstance.closedCons[0]?.logs[0][0]).toBe(expectedSQL);
+			expect(driverInstance.closedCons[0]?.logs[0][1]).toEqual(expectedValues);
+		});
+	});
+
 	describe('Update', () => {
 		it('Should update with conditions provided', async () => {
 			const { db, driverInstance } = createTestInstance();

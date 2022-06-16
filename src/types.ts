@@ -47,6 +47,8 @@ export interface QueryInterface {
 		opts?: Opts,
 	): Promise<unknown>;
 
+	upsert<RowT extends Row>(table: string, data: RowT): Promise<unknown>;
+
 	delete<RowT extends Row>(
 		table: string,
 		where?: Condition<RowT>,

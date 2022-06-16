@@ -93,7 +93,11 @@ export class QueryBase implements QueryInterface {
 		return rows[0];
 	}
 
-	async insert<RowT>(table: string, data: RowT | RowT[]): Promise<unknown> {
+	async insert<RowT>(
+		table: string,
+		data: RowT | RowT[],
+		_upsert = false,
+	): Promise<unknown> {
 		let sql = `INSERT INTO ${this.strWrap(table)}`;
 		const values: BindValue[] = [];
 
@@ -116,6 +120,17 @@ export class QueryBase implements QueryInterface {
 				return valuePlaceholder;
 			})
 			.join(', ');
+
+		if (_upsert) {
+			sql += ' ON DUPLICATE KEY UPDATE ';
+
+			sql += firstRowKeys
+				.map((k) => {
+					const col = this.strWrap(k);
+					return `${col} = COALESCE(VALUES(${col}), ${col})`;
+				})
+				.join(', ');
+		}
 
 		return this.execute(sql, values);
 	}
@@ -160,6 +175,10 @@ export class QueryBase implements QueryInterface {
 		}
 
 		return this.execute(sql, values);
+	}
+
+	async upsert<RowT extends Row>(table: string, data: RowT): Promise<unknown> {
+		return this.insert<RowT>(table, data, true);
 	}
 
 	async delete<RowT extends Row>(
