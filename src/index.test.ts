@@ -63,7 +63,10 @@ describe('Querying', () => {
 		it('Should select columns specified', async () => {
 			const { db, driverInstance } = createTestInstance();
 			const expectedSQL = 'SELECT `firstname`, `lastname` FROM `users`';
-			await db.select(['firstname', 'lastname'], 'users');
+			await db.select<{ firstname: string; lastname: string }>(
+				['firstname', 'lastname'],
+				'users',
+			);
 			expect(driverInstance.closedCons[0]?.logs[0][0]).toBe(expectedSQL);
 		});
 

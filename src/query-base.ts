@@ -9,6 +9,7 @@ import type {
 	OrderBy,
 	Order,
 	Row,
+	Col,
 } from './types';
 
 export class QueryBase implements QueryInterface {
@@ -29,13 +30,13 @@ export class QueryBase implements QueryInterface {
 	}
 
 	async select<RowT extends Row>(
-		tableOrCols: string | string[],
+		tableOrCols: string | Col<RowT>[],
 		tableOrCond?: string | Condition<RowT>,
 		condOrOpts?: Condition<RowT> | Opts,
 		opts?: Opts,
 	): Promise<RowT[]> {
 		let table: string;
-		let cols: string[] | '*';
+		let cols: Col<RowT>[] | '*';
 		let cond: Condition<RowT> | undefined;
 		let opt: Opts | undefined;
 
@@ -79,7 +80,7 @@ export class QueryBase implements QueryInterface {
 	}
 
 	async selectOne<RowT extends Row>(
-		tableOrCols: string | string[],
+		tableOrCols: string | Col<RowT>[],
 		tableOrCond?: string | Condition<RowT>,
 		condOrOpts?: Condition<RowT> | Opts,
 		opts?: Opts,

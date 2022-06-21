@@ -4,6 +4,7 @@ import type { MySQL2Extended } from './index';
 export type DataValue = string | number | null | Date;
 export type BindValue = DataValue | DataValue[];
 export type Row = Record<string, any>;
+export type Col<RowT extends Row> = Extract<keyof RowT, string>;
 export type Condition<RowT extends Record<string, BindValue>> = {
 	[P in keyof RowT]?: BindValue;
 };
@@ -22,14 +23,14 @@ export interface QueryInterface {
 	queryOne<RowT extends Row>(sql: string, values?: BindValue[]): Promise<RowT>;
 
 	select<RowT extends Row>(
-		tableOrCols: string | string[],
+		tableOrCols: string | Col<RowT>[],
 		tableOrCond?: string | Condition<RowT>,
 		condOrOpts?: Condition<RowT> | Opts,
 		opts?: Opts,
 	): Promise<RowT[]>;
 
 	selectOne<RowT extends Row>(
-		tableOrCols: string | string[],
+		tableOrCols: string | Col<RowT>[],
 		tableOrCond?: string | Condition<RowT>,
 		condOrOpts?: Condition<RowT> | Opts,
 		opts?: Opts,
