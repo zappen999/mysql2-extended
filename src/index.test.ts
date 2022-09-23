@@ -1,6 +1,7 @@
 import { MySQL2Extended } from './index';
 import { MySQL2Mock } from './mocks/mysql2';
 import { QueryBase } from './query-base';
+import type { BindValue } from './types';
 
 function createTestInstance(): {
 	driverInstance: MySQL2Mock;
@@ -86,6 +87,15 @@ describe('Querying', () => {
 				'SELECT * FROM `users` WHERE `id` IN(?) AND ' + '`firstname` = ?';
 			const expectedValues = [[2, 3], 'Test'];
 			await db.select('users', { id: [2, 3], firstname: 'Test' });
+			expect(driverInstance.closedCons[0]?.logs[0][0]).toBe(expectedSQL);
+			expect(driverInstance.closedCons[0]?.logs[0][1]).toEqual(expectedValues);
+		});
+
+		it('should use NOT NULL if bind-value is null', async () => {
+			const { db, driverInstance } = createTestInstance();
+			const expectedSQL = 'SELECT * FROM `users` WHERE `id` IS NULL';
+			const expectedValues: BindValue[] = [];
+			await db.select('users', { id: null });
 			expect(driverInstance.closedCons[0]?.logs[0][0]).toBe(expectedSQL);
 			expect(driverInstance.closedCons[0]?.logs[0][1]).toEqual(expectedValues);
 		});

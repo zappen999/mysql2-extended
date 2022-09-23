@@ -243,6 +243,10 @@ export class QueryBase implements QueryInterface {
 			' WHERE ' +
 			Object.keys(cond)
 				.map((k) => {
+					if (cond[k]! === null) {
+						return '`' + k + '` IS NULL';
+					}
+
 					values.push(cond[k]!);
 
 					return '`' + k + '`' + (Array.isArray(cond[k]!) ? ' IN(?)' : ' = ?');
