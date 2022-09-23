@@ -8,7 +8,7 @@
 		"dist/**/*"
 	],
 	"scripts": {
-		"build": "rm -r ./dist && tsc",
+		"build": "rm -rf ./dist && tsc",
 		"test": "jest",
 		"test:watch": "jest --watchAll",
 		"coverage:generate": "jest --coverage",
