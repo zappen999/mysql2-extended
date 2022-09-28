@@ -302,11 +302,15 @@ export class QueryBase implements QueryInterface {
 	}
 
 	protected async getConnection(): Promise<Connection | PoolConnection> {
-		if (this.isPool(this.driver)) {
-			return this.driver.getConnection();
+		const con = this.isPool(this.driver)
+			? await this.driver.getConnection()
+			: this.driver;
+
+		if (this.opts?.onNewConnection) {
+			await this.opts?.onNewConnection(con);
 		}
 
-		return this.driver;
+		return con;
 	}
 
 	protected async closeConnection(

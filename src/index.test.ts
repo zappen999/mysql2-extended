@@ -1,7 +1,7 @@
 import { MySQL2Extended } from './index';
 import { MySQL2Mock } from './mocks/mysql2';
 import { QueryBase } from './query-base';
-import type { BindValue, GlobalOpts } from './types';
+import type { BindValue, GlobalOpts, SingleConnection } from './types';
 
 function createTestInstance(opts?: GlobalOpts): {
 	driverInstance: MySQL2Mock;
@@ -468,34 +468,83 @@ describe('Querying', () => {
 });
 
 describe('Global options', () => {
-	it('Should take use onQuery handler for queries', async () => {
-		expect.assertions(2);
+	describe('#onQuery', () => {
+		it('Should use onQuery handler for queries', async () => {
+			expect.assertions(2);
 
-		const { db } = createTestInstance({
-			onQuery: (sql: string, values?: BindValue[]) => {
-				expect(sql).toEqual('SELECT * FROM `users` WHERE `lastname` = ?');
-				expect(values).toEqual(['Testsson']);
-			},
+			const { db } = createTestInstance({
+				onQuery: (sql: string, values?: BindValue[]) => {
+					expect(sql).toEqual('SELECT * FROM `users` WHERE `lastname` = ?');
+					expect(values).toEqual(['Testsson']);
+				},
+			});
+
+			await db.select('users', {
+				lastname: 'Testsson',
+			});
 		});
 
-		await db.select('users', {
-			lastname: 'Testsson',
+		it('Should use onQuery handler for transactions', async () => {
+			expect.assertions(4);
+			const mockFn = jest.fn();
+
+			const { db } = createTestInstance({ onQuery: mockFn });
+
+			await db.transaction(async (transaction) => {
+				await transaction.select('users');
+			});
+
+			expect(mockFn.mock.calls.length).toBe(3);
+			expect(mockFn.mock.calls[0][0]).toBe('BEGIN');
+			expect(mockFn.mock.calls[1][0]).toBe('SELECT * FROM `users`');
+			expect(mockFn.mock.calls[2][0]).toBe('COMMIT');
 		});
 	});
 
-	it('Should take use onQuery handler for transactions', async () => {
-		expect.assertions(4);
-		const mockFn = jest.fn();
+	describe('#onNewConnection', () => {
+		it('Should use onNewConnection handler for normal queries', async () => {
+			const mockFn = jest.fn();
 
-		const { db } = createTestInstance({ onQuery: mockFn });
+			const { db } = createTestInstance({
+				onNewConnection: mockFn,
+			});
 
-		await db.transaction(async (transaction) => {
-			await transaction.select('users');
+			await db.select('users', {
+				lastname: 'Testsson',
+			});
+
+			expect(mockFn.mock.calls.length).toBe(1);
 		});
 
-		expect(mockFn.mock.calls.length).toBe(3);
-		expect(mockFn.mock.calls[0][0]).toBe('BEGIN');
-		expect(mockFn.mock.calls[1][0]).toBe('SELECT * FROM `users`');
-		expect(mockFn.mock.calls[2][0]).toBe('COMMIT');
+		it('Should use onNewConnection handler for transactions', async () => {
+			const mockFn = jest.fn();
+
+			const { db } = createTestInstance({ onNewConnection: mockFn });
+
+			await db.transaction(async (transaction) => {
+				await transaction.select('users');
+			});
+
+			expect(mockFn.mock.calls.length).toBe(1);
+		});
+
+		it('Should be able to run queries in onNewConnection', async () => {
+			const { db, driverInstance } = createTestInstance({
+				onNewConnection: async (con: SingleConnection) => {
+					await con.query(`set time_zone = 'Europe/Stockholm'`);
+				},
+			});
+
+			await db.select('users');
+
+			expect(driverInstance.closedCons.length).toBe(1);
+			expect(driverInstance.closedCons[0]?.logs.length).toBe(2);
+			expect(driverInstance.closedCons[0]?.logs[0][0]).toBe(
+				`set time_zone = 'Europe/Stockholm'`,
+			);
+			expect(driverInstance.closedCons[0]?.logs[1][0]).toBe(
+				'SELECT * FROM `users`',
+			);
+		});
 	});
 });

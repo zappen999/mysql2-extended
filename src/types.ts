@@ -15,11 +15,12 @@ export type Opts = {
 	limit?: number;
 	order?: OrderBy;
 };
-export type GlobalOpts = {
-	onQuery: (sql: string, values?: BindValue[]) => void;
-};
-
 export type SingleConnection = Connection | PoolConnection;
+
+export type GlobalOpts = {
+	onQuery?: (sql: string, values?: BindValue[]) => void;
+	onNewConnection?: (con: SingleConnection) => Promise<void> | void;
+};
 
 export interface QueryInterface {
 	query<RowT extends Row>(sql: string, values?: BindValue[]): Promise<RowT[]>;
