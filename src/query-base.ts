@@ -11,6 +11,7 @@ import type {
 	Order,
 	Row,
 	Col,
+	SingleConnection,
 } from './types';
 
 export class QueryBase implements QueryInterface {
@@ -302,11 +303,22 @@ export class QueryBase implements QueryInterface {
 	}
 
 	protected async getConnection(): Promise<Connection | PoolConnection> {
-		const con = this.isPool(this.driver)
-			? await this.driver.getConnection()
-			: this.driver;
+		let con: SingleConnection;
+		let isNewConnection = true;
 
-		if (this.opts?.onNewConnection) {
+		if (this.isPool(this.driver)) {
+			con = await this.driver.getConnection();
+
+			if ((con as any).mysql2ExtendedAlreadyInited) {
+				isNewConnection = false;
+			}
+
+			(con as any).mysql2ExtendedAlreadyInited = true;
+		} else {
+			con = this.driver;
+		}
+
+		if (this.opts?.onNewConnection && isNewConnection) {
 			await this.opts?.onNewConnection(con);
 		}
 
