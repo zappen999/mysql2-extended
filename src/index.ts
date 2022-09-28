@@ -1,18 +1,21 @@
 import type { Pool } from 'mysql2/promise';
 
 import { QueryBase } from './query-base';
-import type { SingleConnection } from './types';
+import type { SingleConnection, GlobalOpts } from './types';
 
 export * from './types';
 
 export class MySQL2Extended extends QueryBase {
-	constructor(protected driver: Pool | SingleConnection) {
-		super(driver);
+	constructor(
+		protected driver: Pool | SingleConnection,
+		protected opts?: GlobalOpts,
+	) {
+		super(driver, opts);
 	}
 
 	async begin(): Promise<Transaction> {
 		const con = await this.getConnection();
-		const transactionContext = new Transaction(con);
+		const transactionContext = new Transaction(con, this.opts);
 		await transactionContext._begin();
 		return transactionContext;
 	}
@@ -40,8 +43,8 @@ export class Transaction extends QueryBase {
 	protected hasBegin = false;
 	protected lastAction?: 'COMMIT' | 'ROLLBACK';
 
-	constructor(protected con: SingleConnection) {
-		super(con);
+	constructor(protected con: SingleConnection, protected opts?: GlobalOpts) {
+		super(con, opts);
 	}
 
 	async _begin(): Promise<void> {
@@ -49,19 +52,23 @@ export class Transaction extends QueryBase {
 			throw new Error('Transaction has already began');
 		}
 
-		await this.con.query('BEGIN');
+		await this.execute('BEGIN');
 	}
 
 	async commit(): Promise<void> {
 		this.validateCleanAndMarkDirty('COMMIT');
 
-		await this.con.query('COMMIT');
+		await this.execute('COMMIT');
 	}
 
 	async rollback(): Promise<void> {
 		this.validateCleanAndMarkDirty('ROLLBACK');
 
-		await this.con.query('ROLLBACK');
+		await this.execute('ROLLBACK');
+	}
+
+	protected async getConnection(): Promise<SingleConnection> {
+		return this.con;
 	}
 
 	validateCleanAndMarkDirty(action: 'COMMIT' | 'ROLLBACK'): void {

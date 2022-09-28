@@ -1,9 +1,9 @@
 import { MySQL2Extended } from './index';
 import { MySQL2Mock } from './mocks/mysql2';
 import { QueryBase } from './query-base';
-import type { BindValue } from './types';
+import type { BindValue, GlobalOpts } from './types';
 
-function createTestInstance(): {
+function createTestInstance(opts?: GlobalOpts): {
 	driverInstance: MySQL2Mock;
 	db: MySQL2Extended;
 } {
@@ -11,7 +11,7 @@ function createTestInstance(): {
 
 	// Make driver instance available for asserting.
 	return {
-		db: new MySQL2Extended(driverInstance as any),
+		db: new MySQL2Extended(driverInstance as any, opts),
 		driverInstance,
 	};
 }
@@ -464,5 +464,38 @@ describe('Querying', () => {
 			expect(queries![1][0]).toEqual('SELECT * FROM `users`');
 			expect(queries![2][0]).toEqual('COMMIT');
 		});
+	});
+});
+
+describe('Global options', () => {
+	it('Should take use onQuery handler for queries', async () => {
+		expect.assertions(2);
+
+		const { db } = createTestInstance({
+			onQuery: (sql: string, values?: BindValue[]) => {
+				expect(sql).toEqual('SELECT * FROM `users` WHERE `lastname` = ?');
+				expect(values).toEqual(['Testsson']);
+			},
+		});
+
+		await db.select('users', {
+			lastname: 'Testsson',
+		});
+	});
+
+	it('Should take use onQuery handler for transactions', async () => {
+		expect.assertions(4);
+		const mockFn = jest.fn();
+
+		const { db } = createTestInstance({ onQuery: mockFn });
+
+		await db.transaction(async (transaction) => {
+			await transaction.select('users');
+		});
+
+		expect(mockFn.mock.calls.length).toBe(3);
+		expect(mockFn.mock.calls[0][0]).toBe('BEGIN');
+		expect(mockFn.mock.calls[1][0]).toBe('SELECT * FROM `users`');
+		expect(mockFn.mock.calls[2][0]).toBe('COMMIT');
 	});
 });

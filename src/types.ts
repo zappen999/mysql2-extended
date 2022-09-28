@@ -15,6 +15,9 @@ export type Opts = {
 	limit?: number;
 	order?: OrderBy;
 };
+export type GlobalOpts = {
+	onQuery: (sql: string, values?: BindValue[]) => void;
+};
 
 export type SingleConnection = Connection | PoolConnection;
 

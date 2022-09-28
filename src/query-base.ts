@@ -2,6 +2,7 @@ import assert from 'assert';
 import type { Pool, Connection, PoolConnection } from 'mysql2/promise';
 
 import type {
+	GlobalOpts,
 	BindValue,
 	QueryInterface,
 	Condition,
@@ -13,7 +14,10 @@ import type {
 } from './types';
 
 export class QueryBase implements QueryInterface {
-	constructor(protected driver: Pool | Connection | PoolConnection) {}
+	constructor(
+		protected driver: Pool | Connection | PoolConnection,
+		protected opts?: GlobalOpts,
+	) {}
 
 	async query<RowT>(sql: string, values?: BindValue[]): Promise<RowT[]> {
 		return this.execute(sql, values);
@@ -291,6 +295,7 @@ export class QueryBase implements QueryInterface {
 		values?: BindValue[],
 	): Promise<RowT[]> {
 		const con = await this.getConnection();
+		this.opts?.onQuery?.(sql, values);
 		const [result] = await con.query(sql, values);
 		this.closeConnection(con);
 		return result as RowT[];
