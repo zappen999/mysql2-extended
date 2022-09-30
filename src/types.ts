@@ -18,7 +18,11 @@ export type Opts = {
 export type SingleConnection = Connection | PoolConnection;
 
 export type GlobalOpts = {
-	onQuery?: (sql: string, values?: BindValue[]) => void;
+	onQuery?: (
+		sql: string,
+		values: BindValue[] | undefined,
+		threadId: number,
+	) => void;
 	onNewConnection?: (con: SingleConnection) => Promise<void> | void;
 };
 

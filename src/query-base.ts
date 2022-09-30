@@ -305,7 +305,7 @@ export class QueryBase implements QueryInterface {
 		values?: BindValue[],
 	): Promise<RowT[]> {
 		const con = await this.getConnection();
-		this.opts?.onQuery?.(sql, values);
+		this.opts?.onQuery?.(sql, values, con.threadId);
 		const [result] = await con.query(sql, values);
 		this.closeConnection(con);
 		return result as RowT[];
