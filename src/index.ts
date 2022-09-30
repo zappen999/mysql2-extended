@@ -67,6 +67,12 @@ export class Transaction extends QueryBase {
 		await this.execute('ROLLBACK');
 	}
 
+	protected async closeConnection(con: SingleConnection): Promise<void> {
+		if (this.lastAction && this.isPoolConnection(con)) {
+			con.release();
+		}
+	}
+
 	protected async getConnection(): Promise<SingleConnection> {
 		return this.con;
 	}

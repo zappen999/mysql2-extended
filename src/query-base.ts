@@ -311,7 +311,7 @@ export class QueryBase implements QueryInterface {
 		return result as RowT[];
 	}
 
-	protected async getConnection(): Promise<Connection | PoolConnection> {
+	protected async getConnection(): Promise<SingleConnection> {
 		let con: SingleConnection;
 		let isNewConnection = true;
 
@@ -334,9 +334,7 @@ export class QueryBase implements QueryInterface {
 		return con;
 	}
 
-	protected async closeConnection(
-		con: Connection | PoolConnection,
-	): Promise<void> {
+	protected async closeConnection(con: SingleConnection): Promise<void> {
 		if (this.isPoolConnection(con)) {
 			return con.release();
 		}

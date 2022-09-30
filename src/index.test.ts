@@ -368,6 +368,7 @@ describe('Querying', () => {
 			await transaction.commit();
 
 			expect(driverInstance.openCons.length).toBe(0);
+			expect(driverInstance.closedCons.length).toBe(1);
 		});
 
 		it('should release connections after rollback', async () => {
@@ -378,6 +379,7 @@ describe('Querying', () => {
 			await transaction.rollback();
 
 			expect(driverInstance.openCons.length).toBe(0);
+			expect(driverInstance.closedCons.length).toBe(1);
 		});
 
 		it('Should throw if committing twice', async () => {
