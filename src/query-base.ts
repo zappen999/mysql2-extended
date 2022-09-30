@@ -28,7 +28,9 @@ export class QueryBase implements QueryInterface {
 		const rows = await this.execute<RowT>(sql, values);
 
 		if (rows.length !== 1 || !rows[0]) {
-			throw new Error(`Expected one row, got ${rows.length} rows`);
+			throw new Error(
+				`Expected one row, got ${rows.length} rows. Query: ${sql}`,
+			);
 		}
 
 		return rows[0];
@@ -93,7 +95,14 @@ export class QueryBase implements QueryInterface {
 		const rows = await this.select(tableOrCols, tableOrCond, condOrOpts, opts);
 
 		if (rows.length !== 1 || !rows[0]) {
-			throw new Error(`Expected one row, got ${rows.length} rows`);
+			throw new Error(
+				`Expected one row, got ${rows.length} rows. Query: ${JSON.stringify({
+					tableOrCols,
+					tableOrCond,
+					condOrOpts,
+					opts,
+				})}`,
+			);
 		}
 
 		return rows[0];
