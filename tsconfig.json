@@ -6,7 +6,6 @@
 		"outDir": "./dist",
 		"target": "es2019",
 		"lib": ["es2020"],
-		"importsNotUsedAsValues": "error",
 		"noUncheckedIndexedAccess": true,
 		"strict": true,
 		"noUnusedParameters": true,

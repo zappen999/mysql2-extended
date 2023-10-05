@@ -108,7 +108,7 @@ export class QueryBase implements QueryInterface {
 		return rows[0];
 	}
 
-	async insert<RowT>(
+	async insert<RowT extends Row>(
 		table: string,
 		data: RowT | RowT[],
 		_upsert = false,

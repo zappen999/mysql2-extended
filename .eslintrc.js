@@ -1,3 +1,3 @@
 module.exports = {
-	extends: ['@mobajl/eslint-config'],
+	extends: ['@devdata/eslint-config'],
 }
