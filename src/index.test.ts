@@ -1,13 +1,13 @@
 import { MySQL2Extended } from './index';
-import { MySQL2Mock } from './mocks/mysql2';
+import { MySQL2Mock, MySQL2MockOpts } from './mocks/mysql2';
 import { QueryBase } from './query-base';
 import type { BindValue, GlobalOpts, SingleConnection } from './types';
 
-function createTestInstance(opts?: GlobalOpts): {
+function createTestInstance(opts?: GlobalOpts, mockOpts?: MySQL2MockOpts): {
 	driverInstance: MySQL2Mock;
 	db: MySQL2Extended;
 } {
-	const driverInstance = new MySQL2Mock();
+	const driverInstance = new MySQL2Mock(mockOpts);
 
 	// Make driver instance available for asserting.
 	return {
@@ -465,6 +465,56 @@ describe('Querying', () => {
 			expect(queries![0][0]).toEqual('BEGIN');
 			expect(queries![1][0]).toEqual('SELECT * FROM `users`');
 			expect(queries![2][0]).toEqual('COMMIT');
+		});
+	});
+
+	describe('#getLastInsertId', () => {
+		it('Should throw if called on a pool directly', async () => {
+			const { db } = createTestInstance(undefined, {
+				connectionOpts: { queryResult: [[{id: '123'}]] }
+			});
+
+			expect.assertions(1);
+
+			try {
+				await db.getLastInsertId();
+			} catch (_err) {
+				const err = _err as Error;
+
+				expect(
+					err.message.indexOf('getLastInsertId is not predictable on pool connection, use a normal connection or transaction instead.'),
+				).toBeGreaterThan(-1);
+			}
+		});
+
+		it('Should cast the returned value to number type', async () => {
+			const { db } = createTestInstance(undefined, {
+				connectionOpts: { queryResult: [[{id: '123'}]] }
+			});
+
+			const result = await db.transaction((transaction) => {
+				return transaction.getLastInsertId();
+			});
+
+			expect(result).toEqual(123);
+		});
+
+		it('Should throw if no last insert id was found', async () => {
+			const { db } = createTestInstance(undefined, {
+				connectionOpts: { queryResult: [[{id: null}]] }
+			});
+
+			expect.assertions(1);
+
+			try {
+				await db.transaction((transaction) => {
+					return transaction.getLastInsertId();
+				});
+			} catch (_err) {
+				const err = _err as Error;
+
+				expect(err.message.indexOf('No LAST_INSERT_ID found')).toBeGreaterThan(-1);
+			}
 		});
 	});
 });

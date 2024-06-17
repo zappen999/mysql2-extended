@@ -232,15 +232,15 @@ export class QueryBase implements QueryInterface {
 			);
 		}
 
-		const [row] = await this.execute<{ id: number }>(
+		const [row] = await this.execute<{ id: string }>(
 			'SELECT LAST_INSERT_ID() as id',
 		);
 
-		if (!row || row.id === 0) {
+		if (!row || !row.id || String(row.id) === '0') {
 			throw new Error('No LAST_INSERT_ID found');
 		}
 
-		return row.id;
+		return Number(row.id);
 	}
 
 	// Protected below...
